@@ -19,7 +19,7 @@ header {
   top: 0;
   left: 0;
   z-index: 100;
-  background-color: rgba(255,255,255,0.85);
+  background-color: rgba(255,255,255,0.9);
   backdrop-filter: blur(10px);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -48,8 +48,9 @@ header nav a:hover {
 header nav a.button {
   background-color: #2563eb;
   color: #fff;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
   border-radius: 6px;
+  font-weight: 600;
   transition: background 0.3s;
 }
 
@@ -57,11 +58,24 @@ header nav a.button:hover {
   background-color: #1d4ed8;
 }
 
+/* Logo grande */
+header .container div img {
+  height: 120px;
+  width: 120px;
+}
+
+@media(max-width:768px){
+  header .container div img {
+    height: 80px;
+    width: 80px;
+  }
+}
+
 /* Hero */
 .hero-bg {
   height: 100vh;
   width: 100%;
-  background-image: url('./images/background.png'); /* ajuste extensão se necessário */
+  background-image: url('./images/background.png'); /* ajuste se necessário */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -78,41 +92,44 @@ header nav a.button:hover {
   left:0;
   width:100%;
   height:100%;
-  background-color: rgba(0,0,0,0.5); /* overlay escuro */
+  background-color: rgba(0,0,0,0.3); /* overlay mais sutil */
 }
 
 .hero-content {
   position: relative;
   text-align: center;
-  color: white;
+  color: #fff;
   padding: 2rem 3rem;
   border-radius: 12px;
   max-width: 800px;
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.6); /* destaca texto */
 }
 
 .hero-content h1 {
-  font-size: 3rem;
+  font-size: 3.5rem;
   margin-bottom: 1rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .hero-content p {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   margin-bottom: 2rem;
 }
 
 .hero-content a {
-  background-color: #2563eb;
+  background-color: #00aaff;
   color: white;
-  padding: 0.8rem 2rem;
-  border-radius: 8px;
-  font-weight: 600;
+  padding: 1rem 2.5rem;
+  border-radius: 10px;
+  font-weight: 700;
   text-decoration: none;
-  transition: background 0.3s;
+  font-size: 1.25rem;
+  transition: background 0.3s, transform 0.2s;
 }
 
 .hero-content a:hover {
-  background-color: #1d4ed8;
+  background-color: #007acc;
+  transform: translateY(-3px);
 }
 
 /* Sections */
@@ -121,7 +138,7 @@ section {
 }
 
 section h2 {
-  font-size: 2.25rem;
+  font-size: 2.5rem;
   font-weight: 700;
   text-align: center;
   margin-bottom: 3rem;
@@ -147,20 +164,20 @@ section h2 {
   background-color: #fff;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
   transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.15);
 }
 
 .card h3 {
   color: #2563eb;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   margin-bottom: 1rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .card p {
@@ -172,45 +189,5 @@ section h2 {
 /* Planos - botões */
 .plan-button {
   display: inline-block;
-  background-color: #2563eb;
-  color: white;
-  padding: 0.8rem 2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background 0.3s;
-}
-
-.plan-button:hover {
-  background-color: #1d4ed8;
-}
-
-/* Footer */
-footer {
-  background-color: #fff;
-  border-top: 1px solid #e5e7eb;
-  text-align: center;
-  padding: 2rem;
-  color: #555;
-  font-size: 0.95rem;
-}
-
-/* Responsividade */
-@media(max-width:768px){
-  .hero-content h1 {
-    font-size: 2rem;
-  }
-  .hero-content p {
-    font-size: 1rem;
-  }
-  header .container div img {
-    height: 60px !important;
-    width: 60px !important;
-  }
-}
-
-/* Aumentar logo em desktop */
-header .container div img {
-  height: 80px;
-  width: 80px;
-}
+  background-color: #00aaff;
+  color: whi

@@ -61,7 +61,7 @@ header nav a.button:hover {
 .hero-bg {
   height: 100vh;
   width: 100%;
-  background-image: url('./images/background');
+  background-image: url('./images/background.png'); /* ajuste extensão se necessário */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -78,7 +78,7 @@ header nav a.button:hover {
   left:0;
   width:100%;
   height:100%;
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0,0,0,0.5); /* overlay escuro */
 }
 
 .hero-content {
@@ -203,4 +203,14 @@ footer {
   .hero-content p {
     font-size: 1rem;
   }
+  header .container div img {
+    height: 60px !important;
+    width: 60px !important;
+  }
+}
+
+/* Aumentar logo em desktop */
+header .container div img {
+  height: 80px;
+  width: 80px;
 }

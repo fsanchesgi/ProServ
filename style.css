@@ -1,0 +1,205 @@
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Arial', sans-serif;
+}
+
+/* Body */
+body {
+  background-color: #f9fafb;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Header */
+header {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 50;
+}
+
+header .container {
+  max-width: 1200px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+header nav a {
+  margin-left: 1.5rem;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+header nav a:hover {
+  color: #2563eb; /* azul */
+}
+
+header nav a.button {
+  background-color: #2563eb;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: background 0.3s;
+}
+
+header nav a.button:hover {
+  background-color: #1d4ed8;
+}
+
+/* Hero */
+.hero-bg {
+  background-image: url('./images/background');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.hero-bg::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.hero-content {
+  position: relative;
+  text-align: center;
+  color: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  background-color: rgba(0,0,0,0.45);
+}
+
+.hero-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.hero-content a {
+  background-color: #2563eb;
+  color: #fff;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.hero-content a:hover {
+  background-color: #1d4ed8;
+}
+
+/* Sections */
+section {
+  padding: 6rem 2rem;
+}
+
+/* Titles */
+section h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+/* Grid cards */
+.cards {
+  display: grid;
+  gap: 2rem;
+}
+
+.cards-3 {
+  grid-template-columns: 1fr;
+}
+
+@media(min-width: 768px) {
+  .cards-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Card styles */
+.card {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.card h3 {
+  color: #2563eb;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.card p {
+  color: #555;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Footer */
+footer {
+  background-color: #fff;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+  padding: 2rem;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* Responsividade Hero */
+@media(max-width: 768px) {
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+  .hero-content p {
+    font-size: 1rem;
+  }
+}
+
+/* Links planos e botões */
+.plan-button {
+  display: inline-block;
+  background-color: #2563eb;
+  color: #fff;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.plan-button:hover {
+  background-color: #1d4ed8;
+}

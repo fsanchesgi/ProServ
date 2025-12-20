@@ -6,23 +6,22 @@
   font-family: 'Arial', sans-serif;
 }
 
-/* Body */
 body {
   background-color: #f9fafb;
   color: #333;
   line-height: 1.6;
 }
 
-/* Header */
+/* Header fixo */
 header {
   position: fixed;
   width: 100%;
   top: 0;
   left: 0;
-  background-color: rgba(255, 255, 255, 0.85);
+  z-index: 100;
+  background-color: rgba(255,255,255,0.85);
   backdrop-filter: blur(10px);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  z-index: 50;
 }
 
 header .container {
@@ -43,7 +42,7 @@ header nav a {
 }
 
 header nav a:hover {
-  color: #2563eb; /* azul */
+  color: #2563eb;
 }
 
 header nav a.button {
@@ -60,47 +59,51 @@ header nav a.button:hover {
 
 /* Hero */
 .hero-bg {
+  height: 100vh;
+  width: 100%;
   background-image: url('./images/background');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .hero-bg::after {
-  content: '';
+  content: "";
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
   background-color: rgba(0,0,0,0.5);
 }
 
 .hero-content {
   position: relative;
   text-align: center;
-  color: #fff;
-  padding: 2rem;
+  color: white;
+  padding: 2rem 3rem;
   border-radius: 12px;
-  background-color: rgba(0,0,0,0.45);
+  max-width: 800px;
 }
 
 .hero-content h1 {
-  font-size: 2.5rem;
+  font-size: 3rem;
   margin-bottom: 1rem;
   font-weight: 700;
 }
 
 .hero-content p {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   margin-bottom: 2rem;
 }
 
 .hero-content a {
   background-color: #2563eb;
-  color: #fff;
+  color: white;
   padding: 0.8rem 2rem;
   border-radius: 8px;
   font-weight: 600;
@@ -117,15 +120,14 @@ section {
   padding: 6rem 2rem;
 }
 
-/* Titles */
 section h2 {
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 700;
-  margin-bottom: 3rem;
   text-align: center;
+  margin-bottom: 3rem;
 }
 
-/* Grid cards */
+/* Cards */
 .cards {
   display: grid;
   gap: 2rem;
@@ -135,13 +137,12 @@ section h2 {
   grid-template-columns: 1fr;
 }
 
-@media(min-width: 768px) {
+@media(min-width:768px){
   .cards-3 {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-/* Card styles */
 .card {
   background-color: #fff;
   padding: 2rem;
@@ -168,6 +169,22 @@ section h2 {
   margin-bottom: 1rem;
 }
 
+/* Planos - botões */
+.plan-button {
+  display: inline-block;
+  background-color: #2563eb;
+  color: white;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.plan-button:hover {
+  background-color: #1d4ed8;
+}
+
 /* Footer */
 footer {
   background-color: #fff;
@@ -178,28 +195,12 @@ footer {
   font-size: 0.95rem;
 }
 
-/* Responsividade Hero */
-@media(max-width: 768px) {
+/* Responsividade */
+@media(max-width:768px){
   .hero-content h1 {
     font-size: 2rem;
   }
   .hero-content p {
     font-size: 1rem;
   }
-}
-
-/* Links planos e botões */
-.plan-button {
-  display: inline-block;
-  background-color: #2563eb;
-  color: #fff;
-  padding: 0.8rem 2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background 0.3s;
-}
-
-.plan-button:hover {
-  background-color: #1d4ed8;
 }

@@ -130,7 +130,7 @@ header nav a.button:hover {
   transform: translateY(-3px);
 }
 /* Hero sobre*/
-.hero-bg {
+.hero-sobre {
   height: 100vh;
   width: 100%;
   background-image: url('./images/background-hero.png'); /* ajuste extensão */
@@ -193,7 +193,7 @@ header nav a.button:hover {
 }
 
 /* Hero plano */
-.hero-bg {
+.hero-plano {
   height: 100vh;
   width: 100%;
   background-image: url('./images/background-plano.png'); /* ajuste extensão */

@@ -4,95 +4,109 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ProServ - Gestão de Serviços para Pequenas Empresas</title>
-  <link rel="icon" type="image/png" href="images/favicon.png">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="./images/favicon.png">
+
+  <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.3/dist/tailwind.min.css" rel="stylesheet">
+
+  <style>
+    /* Background Hero */
+    .hero-bg {
+      background-image: url('./images/background');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans">
+<body class="font-sans text-gray-800">
 
   <!-- Header -->
-  <header class="bg-white shadow">
-    <div class="container mx-auto flex justify-between items-center p-4">
+  <header class="fixed w-full bg-white bg-opacity-80 backdrop-blur shadow z-50">
+    <div class="max-w-6xl mx-auto flex justify-between items-center p-4">
       <div class="flex items-center space-x-2">
-        <img src="images/logo.png" alt="ProServ Logo" class="h-10 w-10">
-        <span class="text-xl font-bold text-gray-800">ProServ</span>
+        <img src="./images/logo.png" alt="ProServ Logo" class="h-10 w-10">
+        <span class="text-xl font-bold text-gray-900">ProServ</span>
       </div>
       <nav class="space-x-6">
-        <a href="#home" class="text-gray-700 hover:text-blue-600">Início</a>
-        <a href="#planos" class="text-gray-700 hover:text-blue-600">Planos</a>
-        <a href="#sobre" class="text-gray-700 hover:text-blue-600">Sobre</a>
+        <a href="#home" class="text-gray-800 hover:text-blue-500 font-medium">Início</a>
+        <a href="#planos" class="text-gray-800 hover:text-blue-500 font-medium">Planos</a>
+        <a href="#sobre" class="text-gray-800 hover:text-blue-500 font-medium">Sobre</a>
         <a href="login.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Acessar</a>
       </nav>
     </div>
   </header>
 
   <!-- Hero -->
-  <section id="home" class="bg-blue-50 py-20">
-    <div class="container mx-auto text-center">
-      <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Gestão de Serviços Simplificada</h1>
-      <p class="text-lg md:text-xl text-gray-600 mb-8">Organize agendamentos, clientes e pagamentos da sua pequena empresa de forma prática e eficiente.</p>
-      <a href="#planos" class="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700 transition">Conheça os Planos</a>
+  <section id="home" class="hero-bg h-screen flex items-center justify-center">
+    <div class="text-center text-white px-4 bg-black bg-opacity-50 rounded-lg">
+      <h1 class="text-4xl md:text-6xl font-bold mb-4">Gestão de Serviços Simplificada</h1>
+      <p class="text-lg md:text-2xl mb-8">Organize agendamentos, clientes e pagamentos da sua empresa com tecnologia e eficiência.</p>
+      <a href="#planos" class="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition">Conheça os Planos</a>
     </div>
   </section>
 
-  <!-- Features / Benefícios -->
-  <section class="py-20">
-    <div class="container mx-auto text-center">
+  <!-- Seção Benefícios -->
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-6xl mx-auto px-4 text-center">
       <h2 class="text-3xl font-bold mb-12">Por que escolher o ProServ?</h2>
       <div class="grid md:grid-cols-3 gap-8">
-        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-          <h3 class="text-xl font-semibold mb-3">Agenda Inteligente</h3>
-          <p>Gerencie agendamentos de forma simples e visual, evitando conflitos e esquecimentos.</p>
+        <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-2xl transition">
+          <h3 class="text-xl font-semibold mb-3 text-blue-600">Agenda Inteligente</h3>
+          <p>Gerencie agendamentos de forma visual e evite conflitos, aumentando a produtividade da sua equipe.</p>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-          <h3 class="text-xl font-semibold mb-3">Controle de Clientes</h3>
-          <p>Tenha o histórico completo dos seus clientes e personalize o atendimento de cada um.</p>
+        <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-2xl transition">
+          <h3 class="text-xl font-semibold mb-3 text-blue-600">Controle de Clientes</h3>
+          <p>Tenha o histórico completo dos seus clientes e personalize cada atendimento de forma eficiente.</p>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-          <h3 class="text-xl font-semibold mb-3">Gestão de Pagamentos</h3>
-          <p>Acompanhe pagamentos e planos de assinatura de forma prática e organizada.</p>
+        <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-2xl transition">
+          <h3 class="text-xl font-semibold mb-3 text-blue-600">Gestão de Pagamentos</h3>
+          <p>Acompanhe pagamentos, planos de assinatura e fluxo financeiro de forma organizada e segura.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Planos -->
-  <section id="planos" class="bg-blue-50 py-20">
-    <div class="container mx-auto text-center">
+  <section id="planos" class="py-20 bg-white">
+    <div class="max-w-6xl mx-auto px-4 text-center">
       <h2 class="text-3xl font-bold mb-12">Nossos Planos</h2>
       <div class="grid md:grid-cols-3 gap-8">
-        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-          <h3 class="text-xl font-semibold mb-3">Gratuito</h3>
-          <p class="mb-4">Até 10 agendamentos por mês</p>
-          <p class="mb-6">Ideal para pequenas empresas que estão começando.</p>
-          <a href="signup.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Escolher</a>
+        <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition">
+          <h3 class="text-xl font-semibold mb-3 text-blue-600">Gratuito</h3>
+          <p class="mb-4 font-medium">Até 10 agendamentos/mês</p>
+          <p class="mb-6">Ideal para empresas que estão começando e querem testar a plataforma.</p>
+          <a href="signup.html" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold">Escolher</a>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-          <h3 class="text-xl font-semibold mb-3">Básico</h3>
-          <p class="mb-4">Agendamentos ilimitados</p>
-          <p class="mb-6">Inclui notificações por email e acesso ao dashboard.</p>
-          <a href="signup.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Escolher</a>
+        <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition">
+          <h3 class="text-xl font-semibold mb-3 text-blue-600">Básico</h3>
+          <p class="mb-4 font-medium">Agendamentos ilimitados</p>
+          <p class="mb-6">Inclui notificações e dashboard completo para controle do negócio.</p>
+          <a href="signup.html" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold">Escolher</a>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-          <h3 class="text-xl font-semibold mb-3">Premium</h3>
-          <p class="mb-4">Todos os recursos avançados</p>
-          <p class="mb-6">Inclui integrações com gateways de pagamento e relatórios detalhados.</p>
-          <a href="signup.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Escolher</a>
+        <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition">
+          <h3 class="text-xl font-semibold mb-3 text-blue-600">Premium</h3>
+          <p class="mb-4 font-medium">Todos os recursos avançados</p>
+          <p class="mb-6">Inclui integrações com gateways de pagamento, relatórios detalhados e suporte prioritário.</p>
+          <a href="signup.html" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold">Escolher</a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Sobre / Institucional -->
-  <section id="sobre" class="py-20">
-    <div class="container mx-auto text-center max-w-3xl">
+  <!-- Sobre -->
+  <section id="sobre" class="py-20 bg-gray-50">
+    <div class="max-w-4xl mx-auto text-center px-4">
       <h2 class="text-3xl font-bold mb-6">Sobre o ProServ</h2>
-      <p class="text-gray-600 text-lg">O ProServ é um sistema de gestão de serviços voltado para pequenas empresas, permitindo que você organize seus agendamentos, clientes e pagamentos de forma prática, segura e eficiente. Nosso objetivo é simplificar a rotina do seu negócio para que você possa focar no que realmente importa: atender seus clientes.</p>
+      <p class="text-gray-700 text-lg">O ProServ é um sistema de gestão de serviços voltado para pequenas empresas, permitindo que você organize seus agendamentos, clientes e pagamentos de forma prática, segura e eficiente. Nosso objetivo é simplificar a rotina do seu negócio, aumentando a produtividade e satisfação de seus clientes.</p>
     </div>
   </section>
 
   <!-- Footer -->
   <footer class="bg-white border-t mt-20">
-    <div class="container mx-auto py-6 text-center text-gray-600">
+    <div class="max-w-6xl mx-auto py-6 text-center text-gray-600 px-4">
       &copy; 2025 ProServ. Todos os direitos reservados.
     </div>
   </footer>

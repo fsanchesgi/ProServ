@@ -2,156 +2,81 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard - ProServ</title>
+  <title>ProServ | Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="icon" href="./images/favicon.png">
+  <link rel="icon" type="image/png" href="./images/favicon.png">
   <link rel="stylesheet" href="./style.css">
-
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./auth-guard.js"></script>
 </head>
 <body>
 
-<!-- HEADER -->
+<!-- HEADER PADRÃO -->
 <header>
   <div class="container">
     <div style="display:flex; align-items:center;">
       <img src="./images/logo.png" alt="ProServ Logo">
     </div>
     <nav>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="planos.html">Planos</a>
-      <button id="logoutBtn" class="logout-button">Sair</button>
+      <a href="dashboard.html" class="active">Dashboard</a>
+      <a href="agenda.html">Agenda</a>
+      <a href="#" id="logout-btn" class="button">Sair</a>
     </nav>
   </div>
 </header>
 
-<!-- HERO -->
-<section class="hero-bg">
-  <div class="hero-content">
-    <h1 id="welcome">Dashboard</h1>
-    <p id="userPlan">Carregando informações...</p>
-  </div>
-</section>
-
 <!-- CONTEÚDO -->
-<section style="max-width:1200px; margin:auto; padding:3rem 1rem;">
+<main class="dashboard">
+  <section class="dashboard-header">
+    <h1>Bem-vindo ao ProServ 👋</h1>
+    <p>Gerencie seus serviços, agenda e clientes em um só lugar.</p>
+  </section>
 
-  <!-- ADMIN -->
-  <div id="adminArea" style="display:none;">
-    <h2>📊 Painel Administrativo</h2>
-    <div class="cards cards-3">
-      <div class="card">
-        <h3>Usuários</h3>
-        <p>Gerenciar usuários cadastrados</p>
-      </div>
-      <div class="card">
-        <h3>Planos</h3>
-        <p>Gerenciar planos do sistema</p>
-      </div>
-      <div class="card">
-        <h3>Financeiro</h3>
-        <p>Pagamentos e assinaturas</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- USUÁRIO -->
-  <div id="userArea" style="display:none;">
-    <h2>📅 Sua Agenda</h2>
-    <div id="agendaList" class="cards cards-3"></div>
-
-    <div id="limitWarning" style="display:none; margin-top:2rem; color:#dc2626; font-weight:600;">
-      ⚠️ Limite de agendamentos do seu plano atingido.
+  <section class="features">
+    <div class="card">
+      <h3>📅 Agenda</h3>
+      <p>Visualize e gerencie seus atendimentos.</p>
+      <a href="agenda.html" class="plan-button">Abrir Agenda</a>
     </div>
 
-    <div style="margin-top:2rem;">
-      <button id="newAgendamento" class="plan-button">Novo Agendamento</button>
+    <div class="card">
+      <h3>🧾 Serviços</h3>
+      <p>Cadastre e edite seus serviços.</p>
+      <button class="plan-button">Gerenciar</button>
     </div>
-  </div>
 
-</section>
+    <div class="card">
+      <h3>👤 Perfil</h3>
+      <p>Atualize suas informações.</p>
+      <button class="plan-button">Editar Perfil</button>
+    </div>
+  </section>
+</main>
 
 <!-- FOOTER -->
-<footer style="background: linear-gradient(90deg, #1f2937, #111827); color: #fff; padding: 3rem 2rem;">
-  <div style="text-align:center; color:#9ca3af;">
-    &copy; 2025 ProServ. Todos os direitos reservados.
-  </div>
+<footer style="background:#111827; color:#9ca3af; padding:2rem; text-align:center;">
+  &copy; 2025 ProServ. Todos os direitos reservados.
 </footer>
 
-<!-- SCRIPT -->
+<!-- SUPABASE SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- CLIENTE SUPABASE -->
+<script src="./supabase.js"></script>
+
+<!-- AUTH GUARD -->
+<script src="./auth-guard.js"></script>
+
+<!-- LOGOUT -->
 <script>
-const supabase = Supabase.createClient(
-  'https://uqwbduinwugaqexsvkxc.supabase.co',
-  'SUA_ANON_KEY_AQUI'
-);
+  const logoutBtn = document.getElementById("logout-btn");
 
-async function loadDashboard() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    window.location.href = 'login.html';
-    return;
-  }
+  logoutBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
 
-  // Perfil
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('nome, role, plano_id, planos(nome, limite_agendamentos)')
-    .eq('id', user.id)
-    .single();
+    await window.supabase.auth.signOut();
 
-  document.getElementById('welcome').innerText = `Olá, ${profile.nome}`;
-  document.getElementById('userPlan').innerText =
-    profile.planos ? `Plano ativo: ${profile.planos.nome}` : 'Sem plano ativo';
-
-  // ADMIN
-  if (profile.role === 'admin') {
-    document.getElementById('adminArea').style.display = 'block';
-    return;
-  }
-
-  // USUÁRIO
-  document.getElementById('userArea').style.display = 'block';
-
-  const { data: agendamentos } = await supabase
-    .from('agendamentos')
-    .select('*')
-    .eq('usuario_id', user.id)
-    .order('data_agendamento');
-
-  const agendaDiv = document.getElementById('agendaList');
-  agendaDiv.innerHTML = '';
-
-  agendamentos.forEach(a => {
-    agendaDiv.innerHTML += `
-      <div class="card">
-        <h3>${a.cliente_nome}</h3>
-        <p>${new Date(a.data_agendamento).toLocaleString()}</p>
-        <p>Status: ${a.status}</p>
-      </div>
-    `;
+    window.location.href = "index.html";
   });
-
-  // Limite de plano
-  if (
-    profile.planos &&
-    profile.planos.limite_agendamentos &&
-    agendamentos.length >= profile.planos.limite_agendamentos
-  ) {
-    document.getElementById('limitWarning').style.display = 'block';
-    document.getElementById('newAgendamento').disabled = true;
-  }
-}
-
-// Logout
-document.getElementById('logoutBtn').onclick = async () => {
-  await supabase.auth.signOut();
-  window.location.href = 'index.html';
-};
-
-loadDashboard();
 </script>
 
 </body>

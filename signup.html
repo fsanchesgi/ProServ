@@ -85,31 +85,49 @@ form.addEventListener("submit", async (e) => {
   const password = document.getElementById("password").value;
 
   msg.textContent = "Criando conta...";
+  msg.style.color = "#374151";
 
-  // 1️⃣ CRIA USUÁRIO
+  // Signup no Supabase Auth
   const { data, error } = await supabase.auth.signUp({
     email,
-    password
+    password,
+    options: {
+      data: { nome } // metadata
+    }
   });
 
   if (error) {
     msg.textContent = error.message;
+    msg.style.color = "red";
     return;
   }
 
-  // 2️⃣ CRIA PROFILE
-  await supabase.from("profiles").insert({
-    id: data.user.id,
-    nome,
-    role: "user"
-  });
+  // Criar o registro na tabela profiles
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .insert([{
+      id: data.user.id,
+      nome: nome,
+      plano_id: null,      // padrão vazio
+      role: "user",        // perfil inicial
+      criado_em: new Date() // timestamp
+    }]);
 
-  msg.textContent = "Conta criada! Redirecionando...";
+  if (profileError) {
+    msg.textContent = "Erro ao salvar perfil: " + profileError.message;
+    msg.style.color = "red";
+    return;
+  }
+
+  msg.textContent = "Conta criada com sucesso! Redirecionando...";
+  msg.style.color = "green";
+
   setTimeout(() => {
     window.location.href = "dashboard.html";
-  }, 1200);
+  }, 1500);
 });
 </script>
+
 
 
 <!-- Footer -->

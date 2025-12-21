@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>ProServ | Criar Conta</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="icon" href="./images/favicon.png">
   <link rel="stylesheet" href="./style.css">
 
-  <!-- Supabase v2 -->
+  <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Cliente global -->
+  <script src="./supabase.js"></script>
 </head>
 <body>
 
@@ -27,21 +30,17 @@
   <h2>Criar Conta</h2>
 
   <form id="signup-form">
-    <input type="text" id="nome" placeholder="Nome completo" required />
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Senha" required />
-    <button type="submit" class="plan-button">Criar Conta</button>
+    <input type="text" id="nome" placeholder="Nome completo" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Senha" required>
+
+    <button class="plan-button" type="submit">Criar Conta</button>
   </form>
 
-  <p id="msg" style="margin-top:1rem;"></p>
+  <p id="msg"></p>
 </section>
 
 <script>
-  // ✅ Inicialização ÚNICA do Supabase
-  const supabaseUrl = "https://uqwbduinwugaqexsvkxc.supabase.co";
-  const supabaseAnonKey = "SUA_ANON_KEY_AQUI";
-  const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-
   const form = document.getElementById("signup-form");
   const msg = document.getElementById("msg");
 
@@ -54,7 +53,7 @@
 
     msg.textContent = "Criando conta...";
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await window.supabaseClient.auth.signUp({
       email,
       password,
       options: {
@@ -68,8 +67,8 @@
       return;
     }
 
+    msg.textContent = "Conta criada com sucesso!";
     msg.style.color = "green";
-    msg.textContent = "Conta criada com sucesso! Redirecionando...";
 
     setTimeout(() => {
       window.location.href = "dashboard.html";

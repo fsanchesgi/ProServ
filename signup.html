@@ -73,73 +73,51 @@
   </section>
 
   <!-- SCRIPT -->
-  <script>
-    const form = document.getElementById("signup-form");
-    const msg = document.getElementById("msg");
+ <script>
+const form = document.getElementById("signup-form");
+const msg = document.getElementById("msg");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-      const nome = document.getElementById("nome").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+  const nome = document.getElementById("nome").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-      msg.textContent = "Criando conta...";
-      msg.style.color = "#374151";
+  msg.textContent = "Criando conta...";
+  msg.style.color = "#374151";
 
-      try {
-        // 1️⃣ Criar usuário no Auth
-        const { data: userData, error: authError } = await supabase.auth.signUp({
-          email,
-          password
-        });
-
-        if (authError) {
-          msg.textContent = "Erro no Auth: " + authError.message;
-          msg.style.color = "red";
-          return;
-        }
-
-        // 2️⃣ Verificar se o perfil já existe
-        const { data: existingProfile } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", userData.user.id)
-          .single();
-
-        if (!existingProfile) {
-          // 3️⃣ Inserir no profiles com valores válidos
-          const { error: profileError } = await supabase
-            .from("profiles")
-            .insert([{
-              id: userData.user.id,
-              nome,
-              plano_id: null,       // Sem plano inicialmente
-              role: "user",         // Usuário comum
-              criado_em: new Date() // Timestamp
-            }]);
-
-          if (profileError) {
-            msg.textContent = "Erro ao salvar perfil: " + profileError.message;
-            msg.style.color = "red";
-            return;
-          }
-        }
-
-        msg.textContent = "Conta criada com sucesso! Redirecionando...";
-        msg.style.color = "green";
-
-        // 🔹 Redireciona para dashboard de usuário
-        setTimeout(() => {
-          window.location.href = "dashboard.html";
-        }, 1500);
-
-      } catch (err) {
-        msg.textContent = "Erro inesperado: " + err.message;
-        msg.style.color = "red";
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { nome }  // passa o nome no metadata para a trigger
       }
     });
-  </script>
+
+    if (error) {
+      msg.textContent = error.message;
+      msg.style.color = "red";
+      return;
+    }
+
+    msg.textContent = "Conta criada com sucesso! Verifique seu email.";
+    msg.style.color = "green";
+
+    // Redireciona para login após 2s
+    setTimeout(() => {
+      window.location.href = "login.html";
+    }, 2000);
+
+  } catch (err) {
+    msg.textContent = "Erro ao criar conta.";
+    msg.style.color = "red";
+    console.error(err);
+  }
+});
+</script>
+
 
   <!-- Footer -->
   <footer style="background: linear-gradient(90deg, #1f2937, #111827); color: #fff; padding: 3rem 2rem;">

@@ -1,88 +1,87 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>ProServ | Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="icon" href="./images/favicon.png">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
-<!-- HEADER PADRÃO -->
+<!-- HEADER -->
 <header>
   <div class="container">
-    <div style="display:flex; align-items:center;">
-      <img src="./images/logo.png" alt="ProServ Logo">
-    </div>
+    <img src="./images/logo.png" alt="ProServ Logo">
     <nav>
       <a href="dashboard-admin.html">Admin</a>
-      <a href="dashboard.html">Usuários</a>
-      <a href="agenda.html">Agenda</a>
-      <a href="#" id="logout-btn" class="button">Sair</a>
+      <a href="#">Usuários</a>
+      <a href="#">Planos</a>
+      <button id="logoutBtn" class="button">Sair</button>
     </nav>
   </div>
 </header>
 
-<!-- HERO -->
-<section class="hero" style="padding:3rem 2rem;">
+<!-- CONTEÚDO -->
+<section class="dashboard">
   <div class="container">
     <h1>Painel Administrativo</h1>
-    <p>Gerencie usuários, planos e agendas do ProServ.</p>
+    <p>Gerencie usuários, planos e o sistema.</p>
+
+    <div class="features">
+      <div class="card">
+        <h3>👥 Usuários</h3>
+        <p>Visualizar e gerenciar contas.</p>
+      </div>
+
+      <div class="card">
+        <h3>💼 Planos</h3>
+        <p>Gerenciar planos e assinaturas.</p>
+      </div>
+
+      <div class="card">
+        <h3>📊 Sistema</h3>
+        <p>Status geral da plataforma.</p>
+      </div>
+    </div>
   </div>
 </section>
-
-<!-- CONTEÚDO -->
-<section class="features">
-  <div class="container">
-
-    <div class="card">
-      <h3>👥 Usuários</h3>
-      <p>Visualize e gerencie contas cadastradas.</p>
-      <button class="plan-button">Gerenciar Usuários</button>
-    </div>
-
-    <div class="card">
-      <h3>💳 Planos</h3>
-      <p>Controle planos ativos e assinaturas.</p>
-      <button class="plan-button">Ver Planos</button>
-    </div>
-
-    <div class="card">
-      <h3>📅 Agenda Geral</h3>
-      <p>Acompanhe todos os agendamentos.</p>
-      <button class="plan-button">Abrir Agenda</button>
-    </div>
-
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer style="background: linear-gradient(90deg, #1f2937, #111827); color:#fff; padding:2.5rem;">
-  <div style="text-align:center;">
-    &copy; 2025 ProServ — Área Administrativa
-  </div>
-</footer>
 
 <!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase.js"></script>
 
-<!-- PROTEÇÃO + ROLE ADMIN -->
 <script>
-const logoutBtn = document.getElementById("logoutBtn");
+document.addEventListener("DOMContentLoaded", async () => {
 
-logoutBtn.addEventListener("click", async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  // 🔐 Proteção ADMIN
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", session.user.id)
+    .single();
+
+  if (profile.role !== "admin") {
+    window.location.href = "dashboard.html";
+  }
+});
+
+// LOGOUT
+document.getElementById("logoutBtn").addEventListener("click", async () => {
   await supabase.auth.signOut();
-
   localStorage.clear();
   sessionStorage.clear();
-
   window.location.href = "index.html";
 });
 </script>
-
 
 </body>
 </html>

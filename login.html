@@ -100,16 +100,18 @@
 
   <!-- Login Script -->
   <script>
-  const form = document.getElementById("login-form");
-  const msg = document.getElementById("msg");
+const form = document.getElementById("login-form");
+const msg = document.getElementById("msg");
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    msg.textContent = "Entrando...";
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  msg.textContent = "Entrando...";
+  msg.style.color = "#374151";
 
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
+  try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -117,29 +119,44 @@
 
     if (error) {
       msg.textContent = error.message;
+      msg.style.color = "red";
       return;
     }
 
-    // 🔐 BUSCA O PERFIL APÓS LOGIN CONFIRMADO
+    if (!data.user) {
+      msg.textContent = "Usuário não encontrado.";
+      msg.style.color = "red";
+      return;
+    }
+
+    // Busca perfil do usuário na tabela profiles
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("role")
+      .select("*")
       .eq("id", data.user.id)
       .single();
 
     if (profileError || !profile) {
       msg.textContent = "Erro ao carregar perfil.";
+      msg.style.color = "red";
       return;
     }
 
-    // ✅ REDIRECIONAMENTO CORRETO
+    // Redireciona baseado na role
     if (profile.role === "admin") {
       window.location.href = "dashboard-admin.html";
     } else {
       window.location.href = "dashboard.html";
     }
-  });
+
+  } catch (err) {
+    msg.textContent = "Erro ao logar.";
+    msg.style.color = "red";
+    console.error(err);
+  }
+});
 </script>
+
 
 
 </body>

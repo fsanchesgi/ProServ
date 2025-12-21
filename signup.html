@@ -87,5 +87,41 @@
     </div>
   </footer>
 
+<script>
+const form = document.getElementById('signup-form');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = form.email.value;
+  const password = form.password.value;
+  const nome = form.name.value;
+
+  // Criar usuário no Auth
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password
+  });
+
+  if (error) {
+    alert('Erro ao criar usuário: ' + error.message);
+    return;
+  }
+
+  // Criar perfil na tabela profiles
+  const { error: profileError } = await supabase.from('profiles').insert([
+    { id: data.user.id, nome }
+  ]);
+
+  if (profileError) {
+    alert('Erro ao criar perfil: ' + profileError.message);
+    return;
+  }
+
+  alert('Cadastro realizado com sucesso!');
+  window.location.href = 'login.html';
+});
+</script>
+
+  
 </body>
 </html>

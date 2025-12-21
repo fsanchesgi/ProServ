@@ -10,7 +10,7 @@
 </head>
 <body>
 
-  <!-- Header PADRÃO DO SITE -->
+  <!-- Header -->
   <header>
     <div class="container">
       <div style="display:flex; align-items:center;">
@@ -58,74 +58,18 @@
     </div>
   </section>
 
-<script type="module">
-  import "./supabase.js";
-
-  const form = document.getElementById("login-form");
-  const msg = document.getElementById("msg");
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    msg.textContent = "";
-
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    const { data, error } = await window.supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      msg.textContent = error.message;
-      return;
-    }
-
-    const { data: profile } = await window.supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", data.user.id)
-      .single();
-
-    if (profile?.role === "admin") {
-      window.location.href = "dashboard-admin.html";
-    } else {
-      window.location.href = "dashboard.html";
-    }
-  });
-</script>
-  
   <!-- Footer -->
   <footer style="background: linear-gradient(90deg, #1f2937, #111827); color: #fff; padding: 3rem 2rem;">
-    <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:2rem;">
-      <!-- Logo e descrição -->
-      <div style="flex:1; min-width:250px;">
-        <img src="./images/logo.png" alt="ProServ Logo" style="width:150px; height:auto; margin-bottom:1rem;">
-        <p style="color:#9ca3af; font-size:0.95rem;">O ProServ simplifica a gestão de serviços para pequenas empresas, aumentando produtividade e satisfação de clientes.</p>
+    <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; gap:2rem;">
+      <div>
+        <img src="./images/logo.png" style="width:150px;">
+        <p style="color:#9ca3af;">&copy; 2025 ProServ. Todos os direitos reservados.</p>
       </div>
-
-      <!-- Links rápidos -->
-      <div style="flex:1; min-width:150px;">
-        <h4 style="color:#fff; margin-bottom:1rem;">Links</h4>
-        <ul style="list-style:none; padding:0; line-height:2;">
-          <li><a href="index.html" style="color:#9ca3af; text-decoration:none;">Início</a></li>
-          <li><a href="planos.html" style="color:#9ca3af; text-decoration:none;">Planos</a></li>
-          <li><a href="sobre.html" style="color:#9ca3af; text-decoration:none;">Sobre</a></li>
-          <li><a href="login.html" style="color:#9ca3af; text-decoration:none;">Acessar</a></li>
-        </ul>
+      <div>
+        <a href="index.html">Início</a> |
+        <a href="planos.html">Planos</a> |
+        <a href="sobre.html">Sobre</a>
       </div>
-
-      <!-- Contato -->
-      <div style="flex:1; min-width:200px;">
-        <h4 style="color:#fff; margin-bottom:1rem;">Contato</h4>
-        <p style="color:#9ca3af; margin-bottom:0.5rem;">Email: <a href="mailto:contato@proserv.com.br" style="color:#00ccff;">contato@proserv.com.br</a></p>
-        <p style="color:#9ca3af;">Telefone: <a href="tel:+5511999999999" style="color:#00ccff;">+55 11 99999-9999</a></p>
-        <a href="signup.html" style="display:inline-block; margin-top:1rem; padding:0.8rem 1.5rem; background-color:#00ccff; color:#111827; border-radius:8px; font-weight:600; text-decoration:none; transition:0.3s;">Assine Agora</a>
-      </div>
-    </div>
-
-    <div style="text-align:center; margin-top:2rem; color:#6b7280; font-size:0.85rem;">
-      &copy; 2025 ProServ. Todos os direitos reservados.
     </div>
   </footer>
 
@@ -135,6 +79,7 @@
   <!-- Cliente Supabase -->
   <script src="./supabase.js"></script>
 
+  <!-- Login Script -->
   <script>
     const form = document.getElementById("login-form");
     const msg = document.getElementById("msg");
@@ -162,11 +107,10 @@
         .eq("id", data.user.id)
         .single();
 
-      if (profile?.role === "admin") {
-        window.location.href = "dashboard-admin.html";
-      } else {
-        window.location.href = "dashboard.html";
-      }
+      window.location.href =
+        profile?.role === "admin"
+          ? "dashboard-admin.html"
+          : "dashboard.html";
     });
   </script>
 

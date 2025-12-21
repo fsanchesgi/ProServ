@@ -2,24 +2,18 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>ProServ | Criar Conta</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProServ - Gestão de Serviços para Pequenas Empresas</title>
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="./images/favicon.png">
 
-  <!-- CSS -->
+  <!-- CSS custom -->
   <link rel="stylesheet" href="./style.css">
-
-  <!-- Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Cliente Supabase -->
-  <script src="./supabase.js"></script>
 </head>
 <body>
 
-  <!-- HEADER PADRÃO -->
+  <!-- Header -->
   <header>
     <div class="container">
       <div style="display:flex; align-items:center;">
@@ -29,86 +23,70 @@
         <a href="index.html">Início</a>
         <a href="planos.html">Planos</a>
         <a href="sobre.html">Sobre</a>
-        <a href="login.html" class="button">Entrar</a>
+        <a href="login.html" class="button">Acessar</a>
       </nav>
     </div>
   </header>
 
-  <!-- SIGNUP -->
-  <section class="auth-page">
-    <div class="auth-card">
-      <h2>Criar Conta</h2>
-      <p class="auth-subtitle">
-        Comece agora a organizar seus serviços com o ProServ
-      </p>
-
-      <form id="signup-form">
-        <div class="form-group">
-          <label for="nome">Nome completo</label>
-          <input type="text" id="nome" placeholder="Seu nome completo" required>
-        </div>
-
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email" id="email" placeholder="seu@email.com" required>
-        </div>
-
-        <div class="form-group">
-          <label for="password">Senha</label>
-          <input type="password" id="password" placeholder="Crie uma senha segura" required>
-        </div>
-
-        <button type="submit" class="plan-button auth-button">
-          Criar Conta
-        </button>
-      </form>
-
-      <p id="msg" class="auth-message"></p>
-
-      <p class="auth-footer">
-        Já tem uma conta?
-        <a href="login.html">Entrar</a>
-      </p>
+  <!-- Hero -->
+  <section id="home" class="hero-bg">
+    <div class="hero-content">
+      <h1>Gestão de Serviços Simplificada</h1>
+      <p>Organize agendamentos, clientes e pagamentos da sua empresa com tecnologia e eficiência.</p>
+      <a href="planos.html" class="plan-button">Conheça os Planos</a>
+      <a href="sobre.html" class="plan-button" style="margin-top:1rem; background-color:#00cc99;">Sobre Nós</a>
     </div>
   </section>
 
-  <!-- SCRIPT -->
-  <script>
-    const form = document.getElementById("signup-form");
-    const msg = document.getElementById("msg");
+  <!-- Footer -->
+  <footer>
+    <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; padding:2rem;">
+      <div>
+        <img src="./images/logo.png" alt="ProServ Logo" style="width:75px; height:auto; margin-bottom:1rem;">
+        <p>&copy; 2025 ProServ. Todos os direitos reservados.</p>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+        <a href="index.html" style="color:#2563eb; text-decoration:none;">Início</a>
+        <a href="planos.html" style="color:#2563eb; text-decoration:none;">Planos</a>
+        <a href="sobre.html" style="color:#2563eb; text-decoration:none;">Sobre</a>
+        <a href="login.html" style="color:#2563eb; text-decoration:none;">Acessar</a>
+      </div>
+  <footer style="background: linear-gradient(90deg, #1f2937, #111827); color: #fff; padding: 3rem 2rem;">
+  <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:2rem;">
+    
+    <!-- Logo e descrição -->
+    <div style="flex:1; min-width:250px;">
+      <img src="./images/logo.png" alt="ProServ Logo" style="width:150px; height:auto; margin-bottom:1rem;">
+      <p style="color:#9ca3af; font-size:0.95rem;">O ProServ simplifica a gestão de serviços para pequenas empresas, aumentando produtividade e satisfação de clientes.</p>
+    </div>
+  </footer>
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+    <!-- Links rápidos -->
+    <div style="flex:1; min-width:150px;">
+      <h4 style="color:#fff; margin-bottom:1rem;">Links</h4>
+      <ul style="list-style:none; padding:0; line-height:2;">
+        <li><a href="index.html" style="color:#9ca3af; text-decoration:none;">Início</a></li>
+        <li><a href="planos.html" style="color:#9ca3af; text-decoration:none;">Planos</a></li>
+        <li><a href="sobre.html" style="color:#9ca3af; text-decoration:none;">Sobre</a></li>
+        <li><a href="login.html" style="color:#9ca3af; text-decoration:none;">Acessar</a></li>
+      </ul>
+    </div>
 
-      const nome = document.getElementById("nome").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+    <!-- Contato -->
+    <div style="flex:1; min-width:200px;">
+      <h4 style="color:#fff; margin-bottom:1rem;">Contato</h4>
+      <p style="color:#9ca3af; margin-bottom:0.5rem;">Email: <a href="mailto:contato@proserv.com.br" style="color:#00ccff;">contato@proserv.com.br</a></p>
+      <p style="color:#9ca3af;">Telefone: <a href="tel:+5511999999999" style="color:#00ccff;">+55 11 99999-9999</a></p>
+      <a href="signup.html" style="display:inline-block; margin-top:1rem; padding:0.8rem 1.5rem; background-color:#00ccff; color:#111827; border-radius:8px; font-weight:600; text-decoration:none; transition:0.3s;">Assine Agora</a>
+    </div>
 
-      msg.textContent = "Criando conta...";
-      msg.style.color = "#374151";
+  </div>
 
-      const { error } = await window.supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { nome }
-        }
-      });
+  <div style="text-align:center; margin-top:2rem; color:#6b7280; font-size:0.85rem;">
+    &copy; 2025 ProServ. Todos os direitos reservados.
+  </div>
+</footer>
 
-      if (error) {
-        msg.textContent = error.message;
-        msg.style.color = "red";
-        return;
-      }
-
-      msg.textContent = "Conta criada com sucesso! Redirecionando...";
-      msg.style.color = "green";
-
-      setTimeout(() => {
-        window.location.href = "dashboard.html";
-      }, 1500);
-    });
-  </script>
 
 </body>
 </html>

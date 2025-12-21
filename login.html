@@ -5,15 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ProServ - Acessar Conta</title>
 
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="./images/favicon.png">
-
-  <!-- CSS custom -->
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
-  <!-- Header -->
+  <!-- Header PADRÃO DO SITE -->
   <header>
     <div class="container">
       <div style="display:flex; align-items:center;">
@@ -28,8 +25,6 @@
     </div>
   </header>
 
-  <br>
-
   <!-- Login -->
   <section class="auth-page">
     <div class="auth-card">
@@ -41,12 +36,12 @@
       <form id="login-form">
         <div class="form-group">
           <label for="email">E-mail</label>
-          <input type="email" id="email" placeholder="seu@email.com" required>
+          <input type="email" id="email" required placeholder="seu@email.com">
         </div>
 
         <div class="form-group">
           <label for="password">Senha</label>
-          <input type="password" id="password" placeholder="Sua senha" required>
+          <input type="password" id="password" required placeholder="Sua senha">
         </div>
 
         <button type="submit" class="plan-button auth-button">
@@ -65,28 +60,24 @@
 
   <!-- Footer -->
   <footer>
-    <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; padding:2rem;">
+    <div style="max-width:1200px; margin:auto; display:flex; justify-content:space-between; align-items:center; padding:2rem;">
       <div>
-        <img src="./images/logo.png" alt="ProServ Logo" style="width:150px; height:auto; margin-bottom:1rem;">
+        <img src="./images/logo.png" style="width:150px;">
         <p>&copy; 2025 ProServ. Todos os direitos reservados.</p>
       </div>
-      <div style="display:flex; flex-wrap:wrap; gap:1rem;">
-        <a href="index.html" style="color:#2563eb; text-decoration:none;">Início</a>
-        <a href="planos.html" style="color:#2563eb; text-decoration:none;">Planos</a>
-        <a href="sobre.html" style="color:#2563eb; text-decoration:none;">Sobre</a>
-        <a href="login.html" style="color:#2563eb; text-decoration:none;">Acessar</a>
+      <div style="display:flex; gap:1rem;">
+        <a href="index.html">Início</a>
+        <a href="planos.html">Planos</a>
+        <a href="sobre.html">Sobre</a>
       </div>
     </div>
   </footer>
 
-  <!-- SUPABASE LOGIN SCRIPT -->
-  <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+  <!-- SCRIPT -->
+  <!-- IMPORTANTE: usa o supabase.js EXISTENTE -->
+  <script src="./supabase.js"></script>
 
-    const supabaseUrl = "https://SEU_PROJETO.supabase.co";
-    const supabaseKey = "SUA_ANON_KEY";
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
+  <script>
     const form = document.getElementById("login-form");
     const msg = document.getElementById("msg");
 
@@ -99,7 +90,7 @@
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
 
       if (error) {
@@ -107,7 +98,6 @@
         return;
       }
 
-      // Buscar perfil
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")

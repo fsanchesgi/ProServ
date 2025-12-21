@@ -74,41 +74,43 @@
 
   <!-- SCRIPT -->
   <script>
-    const form = document.getElementById("signup-form");
-    const msg = document.getElementById("msg");
+const form = document.getElementById("signup-form");
+const msg = document.getElementById("msg");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-      const nome = document.getElementById("nome").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+  const nome = document.getElementById("nome").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-      msg.textContent = "Criando conta...";
-      msg.style.color = "#374151";
+  msg.textContent = "Criando conta...";
 
-      const { error } = await window.supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { nome }
-        }
-      });
+  // 1️⃣ CRIA USUÁRIO
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password
+  });
 
-      if (error) {
-        msg.textContent = error.message;
-        msg.style.color = "red";
-        return;
-      }
+  if (error) {
+    msg.textContent = error.message;
+    return;
+  }
 
-      msg.textContent = "Conta criada com sucesso! Redirecionando...";
-      msg.style.color = "green";
+  // 2️⃣ CRIA PROFILE
+  await supabase.from("profiles").insert({
+    id: data.user.id,
+    nome,
+    role: "user"
+  });
 
-      setTimeout(() => {
-        window.location.href = "dashboard.html";
-      }, 1500);
-    });
-  </script>
+  msg.textContent = "Conta criada! Redirecionando...";
+  setTimeout(() => {
+    window.location.href = "dashboard.html";
+  }, 1200);
+});
+</script>
+
 
 <!-- Footer -->
   <footer style="background: linear-gradient(90deg, #1f2937, #111827); color: #fff; padding: 3rem 2rem;">

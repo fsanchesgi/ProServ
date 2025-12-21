@@ -19,7 +19,7 @@
 </head>
 <body>
 
-  <!-- Header PADRÃO -->
+  <!-- Header -->
   <header>
     <div class="container">
       <div style="display:flex; align-items:center;">
@@ -34,11 +34,13 @@
     </div>
   </header>
 
-  <!-- Signup -->
+  <!-- SIGNUP -->
   <section class="auth-page">
     <div class="auth-card">
       <h2>Criar Conta</h2>
-      <p class="auth-subtitle">Comece agora a organizar seus serviços com o ProServ</p>
+      <p class="auth-subtitle">
+        Comece agora a organizar seus serviços com o ProServ
+      </p>
 
       <form id="signup-form">
         <div class="form-group">
@@ -56,23 +58,95 @@
           <input type="password" id="password" placeholder="Crie uma senha segura" required>
         </div>
 
-        <button type="submit" class="plan-button auth-button">Criar Conta</button>
+        <button type="submit" class="plan-button auth-button">
+          Criar Conta
+        </button>
       </form>
 
       <p id="msg" class="auth-message"></p>
 
       <p class="auth-footer">
-        Já tem uma conta? <a href="login.html">Entrar</a>
+        Já tem uma conta?
+        <a href="login.html">Entrar</a>
       </p>
     </div>
   </section>
+
+  <!-- SCRIPT -->
+  <script>
+    const form = document.getElementById("signup-form");
+    const msg = document.getElementById("msg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const nome = document.getElementById("nome").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      msg.textContent = "Criando conta...";
+      msg.style.color = "#374151";
+
+      try {
+        // 1️⃣ Criar usuário no Auth
+        const { data: userData, error: authError } = await supabase.auth.signUp({
+          email,
+          password
+        });
+
+        if (authError) {
+          msg.textContent = "Erro no Auth: " + authError.message;
+          msg.style.color = "red";
+          return;
+        }
+
+        // 2️⃣ Verificar se o perfil já existe
+        const { data: existingProfile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userData.user.id)
+          .single();
+
+        if (!existingProfile) {
+          // 3️⃣ Inserir no profiles com valores válidos
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .insert([{
+              id: userData.user.id,
+              nome,
+              plano_id: null,       // Sem plano inicialmente
+              role: "user",         // Usuário comum
+              criado_em: new Date() // Timestamp
+            }]);
+
+          if (profileError) {
+            msg.textContent = "Erro ao salvar perfil: " + profileError.message;
+            msg.style.color = "red";
+            return;
+          }
+        }
+
+        msg.textContent = "Conta criada com sucesso! Redirecionando...";
+        msg.style.color = "green";
+
+        // 🔹 Redireciona para dashboard de usuário
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 1500);
+
+      } catch (err) {
+        msg.textContent = "Erro inesperado: " + err.message;
+        msg.style.color = "red";
+      }
+    });
+  </script>
 
   <!-- Footer -->
   <footer style="background: linear-gradient(90deg, #1f2937, #111827); color: #fff; padding: 3rem 2rem;">
     <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:2rem;">
       <div style="flex:1; min-width:250px;">
-        <img src="./images/logo.png" alt="ProServ Logo" style="width:150px; margin-bottom:1rem;">
-        <p style="color:#9ca3af; font-size:0.95rem;">O ProServ simplifica a gestão de serviços para pequenas empresas.</p>
+        <img src="./images/logo.png" alt="ProServ Logo" style="width:150px; height:auto; margin-bottom:1rem;">
+        <p style="color:#9ca3af; font-size:0.95rem;">O ProServ simplifica a gestão de serviços para pequenas empresas, aumentando produtividade e satisfação de clientes.</p>
       </div>
       <div style="flex:1; min-width:150px;">
         <h4 style="color:#fff; margin-bottom:1rem;">Links</h4>
@@ -94,64 +168,6 @@
       &copy; 2025 ProServ. Todos os direitos reservados.
     </div>
   </footer>
-
-  <!-- Signup Script -->
-  <script>
-    const form = document.getElementById("signup-form");
-    const msg = document.getElementById("msg");
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const nome = document.getElementById("nome").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      msg.textContent = "Criando conta...";
-      msg.style.color = "#374151";
-
-      // Cria usuário no Auth
-      const { data: userData, error: authError } = await window.supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { nome }
-        }
-      });
-
-      if (authError) {
-        msg.textContent = authError.message;
-        msg.style.color = "red";
-        return;
-      }
-
-      // Cria perfil no banco
-      const { error: profileError } = await window.supabase
-        .from("profiles")
-        .insert([
-          {
-            id: userData.user.id,
-            nome,
-            plano_id: null,
-            role: "user",
-            criado_em: new Date()
-          }
-        ]);
-
-      if (profileError) {
-        msg.textContent = "Erro ao salvar perfil: " + profileError.message;
-        msg.style.color = "red";
-        return;
-      }
-
-      msg.textContent = "Conta criada com sucesso! Redirecionando...";
-      msg.style.color = "green";
-
-      setTimeout(() => {
-        window.location.href = "dashboard.html";
-      }, 1500);
-    });
-  </script>
 
 </body>
 </html>

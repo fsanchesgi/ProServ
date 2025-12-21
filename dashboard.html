@@ -72,28 +72,18 @@
 
 <!-- PROTEÇÃO + LOGOUT -->
 <script>
-  document.addEventListener("DOMContentLoaded", async () => {
+const logoutBtn = document.getElementById("logoutBtn");
 
-    // 🔐 Proteção de rota
-    const { data } = await window.supabase.auth.getSession();
+logoutBtn.addEventListener("click", async () => {
+  await supabase.auth.signOut();
 
-    if (!data.session) {
-      window.location.href = "login.html";
-      return;
-    }
+  localStorage.clear();
+  sessionStorage.clear();
 
-    // 🚪 Logout
-    const logoutBtn = document.getElementById("logout-btn");
-
-    logoutBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
-
-      await window.supabase.auth.signOut();
-
-      window.location.href = "index.html";
-    });
-  });
+  window.location.href = "index.html";
+});
 </script>
+
 
 </body>
 </html>

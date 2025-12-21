@@ -1,127 +1,81 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  // Inicialização do Supabase
-  const supabaseUrl = 'https://uqwbduinwugaqexsvkxc.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxd2JkdWlud3VnYXFleHN2a3hjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3MTk5MjMsImV4cCI6MjA4MTI5NTkyM30._GzXlkNAvqbevYjmi-crhvSKGQQfX3yjzTWT5PTvIxE';
-  const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
-</script>
-
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <title>ProServ | Criar Conta</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cadastro - ProServ</title>
 
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="./images/favicon.png">
-
-  <!-- CSS custom -->
   <link rel="stylesheet" href="./style.css">
+
+  <!-- Supabase v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <!-- Header -->
-  <header>
-    <div class="container">
-      <div style="display:flex; align-items:center;">
-        <img src="./images/logo.png" alt="ProServ Logo">
-      </div>
-      <nav>
-        <a href="index.html">Início</a>
-        <a href="planos.html">Planos</a>
-        <a href="sobre.html">Sobre</a>
-        <a href="login.html" class="button">Acessar</a>
-      </nav>
-    </div>
-  </header>
+<header>
+  <div class="container">
+    <img src="./images/logo.png" alt="ProServ Logo">
+    <nav>
+      <a href="index.html">Início</a>
+      <a href="login.html" class="button">Entrar</a>
+    </nav>
+  </div>
+</header>
 
-  <!-- Hero -->
-  <section class="hero-bg">
-    <div class="hero-content">
-      <h1>Cadastre-se no ProServ</h1>
-      <p>Comece a organizar seus agendamentos, clientes e pagamentos hoje mesmo.</p>
-    </div>
-  </section>
+<section class="auth-container">
+  <h2>Criar Conta</h2>
 
-  <!-- Formulário de Cadastro -->
-  <section style="padding:3rem 1rem; display:flex; justify-content:center;">
-    <form id="signup-form" style="max-width:400px; width:100%; background:#f9f9f9; padding:2rem; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
-      <h2 style="text-align:center; margin-bottom:1.5rem;">Cadastro</h2>
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" placeholder="Digite seu email" required>
-      <label for="password">Senha</label>
-      <input type="password" id="password" name="password" placeholder="Digite sua senha" required>
-      <label for="name">Nome</label>
-      <input type="text" id="name" name="name" placeholder="Digite seu nome" required>
-      <button type="submit" class="plan-button" style="width:100%; margin-top:1rem;">Cadastrar</button>
-      <p style="text-align:center; margin-top:1rem; font-size:0.9rem;">Já tem conta? <a href="login.html">Acesse aqui</a></p>
-    </form>
-  </section>
+  <form id="signup-form">
+    <input type="text" id="nome" placeholder="Nome completo" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Senha" required />
+    <button type="submit" class="plan-button">Criar Conta</button>
+  </form>
 
-  <!-- Footer -->
-  <footer style="background: linear-gradient(90deg, #1f2937, #111827); color: #fff; padding: 3rem 2rem;">
-    <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:2rem;">
-      <div style="flex:1; min-width:250px;">
-        <img src="./images/logo.png" alt="ProServ Logo" style="width:150px; height:auto; margin-bottom:1rem;">
-        <p style="color:#9ca3af; font-size:0.95rem;">O ProServ simplifica a gestão de serviços para pequenas empresas, aumentando produtividade e satisfação de clientes.</p>
-      </div>
-      <div style="flex:1; min-width:150px;">
-        <h4 style="color:#fff; margin-bottom:1rem;">Links</h4>
-        <ul style="list-style:none; padding:0; line-height:2;">
-          <li><a href="index.html" style="color:#9ca3af; text-decoration:none;">Início</a></li>
-          <li><a href="planos.html" style="color:#9ca3af; text-decoration:none;">Planos</a></li>
-          <li><a href="sobre.html" style="color:#9ca3af; text-decoration:none;">Sobre</a></li>
-          <li><a href="login.html" style="color:#9ca3af; text-decoration:none;">Acessar</a></li>
-        </ul>
-      </div>
-      <div style="flex:1; min-width:200px;">
-        <h4 style="color:#fff; margin-bottom:1rem;">Contato</h4>
-        <p style="color:#9ca3af; margin-bottom:0.5rem;">Email: <a href="mailto:contato@proserv.com.br" style="color:#00ccff;">contato@proserv.com.br</a></p>
-        <p style="color:#9ca3af;">Telefone: <a href="tel:+5511999999999" style="color:#00ccff;">+55 11 99999-9999</a></p>
-        <a href="signup.html" style="display:inline-block; margin-top:1rem; padding:0.8rem 1.5rem; background-color:#00ccff; color:#111827; border-radius:8px; font-weight:600; text-decoration:none; transition:0.3s;">Assine Agora</a>
-      </div>
-    </div>
-    <div style="text-align:center; margin-top:2rem; color:#6b7280; font-size:0.85rem;">
-      &copy; 2025 ProServ. Todos os direitos reservados.
-    </div>
-  </footer>
+  <p id="msg" style="margin-top:1rem;"></p>
+</section>
 
 <script>
-const form = document.getElementById('signup-form');
+  // ✅ Inicialização ÚNICA do Supabase
+  const supabaseUrl = "https://uqwbduinwugaqexsvkxc.supabase.co";
+  const supabaseAnonKey = "SUA_ANON_KEY_AQUI";
+  const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = form.email.value;
-  const password = form.password.value;
-  const nome = form.name.value;
+  const form = document.getElementById("signup-form");
+  const msg = document.getElementById("msg");
 
-  // Criar usuário no Auth
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const nome = document.getElementById("nome").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    msg.textContent = "Criando conta...";
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { nome }
+      }
+    });
+
+    if (error) {
+      msg.textContent = error.message;
+      msg.style.color = "red";
+      return;
+    }
+
+    msg.style.color = "green";
+    msg.textContent = "Conta criada com sucesso! Redirecionando...";
+
+    setTimeout(() => {
+      window.location.href = "dashboard.html";
+    }, 1500);
   });
-
-  if (error) {
-    alert('Erro ao criar usuário: ' + error.message);
-    return;
-  }
-
-  // Criar perfil na tabela profiles
-  const { error: profileError } = await supabase.from('profiles').insert([
-    { id: data.user.id, nome }
-  ]);
-
-  if (profileError) {
-    alert('Erro ao criar perfil: ' + profileError.message);
-    return;
-  }
-
-  alert('Cadastro realizado com sucesso!');
-  window.location.href = 'login.html';
-});
 </script>
 
-  
 </body>
 </html>

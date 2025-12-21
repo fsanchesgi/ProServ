@@ -87,7 +87,7 @@
       msg.textContent = "Criando conta...";
       msg.style.color = "#374151";
 
-      const { error } = await window.supabaseClient.auth.signUp({
+      const { error } = await window.supabase.auth.signUp({
         email,
         password,
         options: {

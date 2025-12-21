@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // Inicialização do Supabase
+  const supabaseUrl = 'https://uqwbduinwugaqexsvkxc.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxd2JkdWlud3VnYXFleHN2a3hjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3MTk5MjMsImV4cCI6MjA4MTI5NTkyM30._GzXlkNAvqbevYjmi-crhvSKGQQfX3yjzTWT5PTvIxE';
+  const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - ProServ</title>
@@ -77,5 +84,26 @@
     </div>
   </footer>
 
+<script>
+const loginForm = document.getElementById('login-form');
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = loginForm.email.value;
+  const password = loginForm.password.value;
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    alert('Erro ao fazer login: ' + error.message);
+    return;
+  }
+
+  alert('Login realizado com sucesso!');
+  window.location.href = 'index.html'; // Ou dashboard do usuário
+});
+</script>
+
+  
 </body>
 </html>

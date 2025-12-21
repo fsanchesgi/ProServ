@@ -10,51 +10,58 @@
 </head>
 <body>
 
-<!-- HEADER PADRÃO -->
+<!-- HEADER PADRÃO (IGUAL AO SITE) -->
 <header>
   <div class="container">
     <div style="display:flex; align-items:center;">
       <img src="./images/logo.png" alt="ProServ Logo">
     </div>
     <nav>
-      <a href="dashboard.html" class="active">Dashboard</a>
+      <a href="dashboard.html">Dashboard</a>
       <a href="agenda.html">Agenda</a>
-      <a href="index.html" id="logout-btn" class="button">Sair</a>
+      <a href="#" id="logout-btn" class="button">Sair</a>
     </nav>
   </div>
 </header>
 
-<!-- CONTEÚDO -->
-<main class="dashboard">
-  <section class="dashboard-header">
-    <h1>Bem-vindo ao ProServ 👋</h1>
+<!-- HERO PADRÃO -->
+<section class="hero" style="padding:3rem 2rem;">
+  <div class="container">
+    <h1>Bem-vindo ao ProServ</h1>
     <p>Gerencie seus serviços, agenda e clientes em um só lugar.</p>
-  </section>
+  </div>
+</section>
 
-  <section class="features">
+<!-- CONTEÚDO PADRÃO -->
+<section class="features">
+  <div class="container">
+
     <div class="card">
       <h3>📅 Agenda</h3>
-      <p>Visualize e gerencie seus atendimentos.</p>
+      <p>Visualize e organize seus atendimentos.</p>
       <a href="agenda.html" class="plan-button">Abrir Agenda</a>
     </div>
 
     <div class="card">
       <h3>🧾 Serviços</h3>
-      <p>Cadastre e edite seus serviços.</p>
+      <p>Gerencie seus serviços oferecidos.</p>
       <button class="plan-button">Gerenciar</button>
     </div>
 
     <div class="card">
       <h3>👤 Perfil</h3>
-      <p>Atualize suas informações.</p>
+      <p>Atualize seus dados pessoais.</p>
       <button class="plan-button">Editar Perfil</button>
     </div>
-  </section>
-</main>
 
-<!-- FOOTER -->
-<footer style="background:#111827; color:#9ca3af; padding:2rem; text-align:center;">
-  &copy; 2025 ProServ. Todos os direitos reservados.
+  </div>
+</section>
+
+<!-- FOOTER PADRÃO -->
+<footer style="background: linear-gradient(90deg, #1f2937, #111827); color: #fff; padding: 3rem 2rem;">
+  <div style="max-width:1200px; margin:auto; text-align:center;">
+    &copy; 2025 ProServ. Todos os direitos reservados.
+  </div>
 </footer>
 
 <!-- SUPABASE SDK -->
@@ -63,19 +70,28 @@
 <!-- CLIENTE SUPABASE -->
 <script src="./supabase.js"></script>
 
-<!-- AUTH GUARD -->
-<script src="./auth-guard.js"></script>
-
-<!-- LOGOUT -->
+<!-- PROTEÇÃO + LOGOUT -->
 <script>
-  const logoutBtn = document.getElementById("logout-btn");
+  document.addEventListener("DOMContentLoaded", async () => {
 
-  logoutBtn.addEventListener("click", async (e) => {
-    e.preventDefault();
+    // 🔐 Proteção de rota
+    const { data } = await window.supabase.auth.getSession();
 
-    await window.supabase.auth.signOut();
+    if (!data.session) {
+      window.location.href = "login.html";
+      return;
+    }
 
-    window.location.href = "index.html";
+    // 🚪 Logout
+    const logoutBtn = document.getElementById("logout-btn");
+
+    logoutBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      await window.supabase.auth.signOut();
+
+      window.location.href = "index.html";
+    });
   });
 </script>
 

@@ -1,26 +1,25 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  // Inicialização do Supabase
-  const supabaseUrl = 'https://uqwbduinwugaqexsvkxc.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxd2JkdWlud3VnYXFleHN2a3hjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3MTk5MjMsImV4cCI6MjA4MTI5NTkyM30._GzXlkNAvqbevYjmi-crhvSKGQQfX3yjzTWT5PTvIxE';
-  const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
-</script>
   <meta charset="UTF-8">
+  <title>ProServ | Entrar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - ProServ</title>
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="./images/favicon.png">
 
-  <!-- CSS custom -->
+  <!-- CSS -->
   <link rel="stylesheet" href="./style.css">
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Cliente Supabase -->
+  <script src="./supabase.js"></script>
 </head>
 <body>
 
-  <!-- Header -->
+  <!-- HEADER PADRÃO -->
   <header>
     <div class="container">
       <div style="display:flex; align-items:center;">
@@ -30,80 +29,77 @@
         <a href="index.html">Início</a>
         <a href="planos.html">Planos</a>
         <a href="sobre.html">Sobre</a>
-        <a href="login.html" class="button">Acessar</a>
+        <a href="signup.html" class="button">Criar Conta</a>
       </nav>
     </div>
   </header>
 
-  <!-- Hero -->
-  <section class="hero-bg">
-    <div class="hero-content">
-      <h1>Login no ProServ</h1>
-      <p>Entre para acessar suas ferramentas de gestão de serviços.</p>
+  <!-- LOGIN -->
+  <section class="auth-page">
+    <div class="auth-card">
+      <h2>Entrar</h2>
+      <p class="auth-subtitle">
+        Acesse sua conta e gerencie seus serviços
+      </p>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="seu@email.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input type="password" id="password" placeholder="Sua senha" required>
+        </div>
+
+        <button type="submit" class="plan-button auth-button">
+          Entrar
+        </button>
+      </form>
+
+      <p id="msg" class="auth-message"></p>
+
+      <p class="auth-footer">
+        Não tem uma conta?
+        <a href="signup.html">Criar agora</a>
+      </p>
     </div>
   </section>
 
-  <!-- Formulário de Login -->
-  <section style="padding:3rem 1rem; display:flex; justify-content:center;">
-    <form id="login-form" style="max-width:400px; width:100%; background:#f9f9f9; padding:2rem; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
-      <h2 style="text-align:center; margin-bottom:1.5rem;">Login</h2>
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" placeholder="Digite seu email" required>
-      <label for="password">Senha</label>
-      <input type="password" id="password" name="password" placeholder="Digite sua senha" required>
-      <button type="submit" class="plan-button" style="width:100%; margin-top:1rem;">Entrar</button>
-      <p style="text-align:center; margin-top:1rem; font-size:0.9rem;">Não tem conta? <a href="signup.html">Cadastre-se aqui</a></p>
-    </form>
-  </section>
+  <!-- SCRIPT -->
+  <script>
+    const form = document.getElementById("login-form");
+    const msg = document.getElementById("msg");
 
-  <!-- Footer -->
-  <footer style="background: linear-gradient(90deg, #1f2937, #111827); color: #fff; padding: 3rem 2rem;">
-    <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:2rem;">
-      <div style="flex:1; min-width:250px;">
-        <img src="./images/logo.png" alt="ProServ Logo" style="width:150px; height:auto; margin-bottom:1rem;">
-        <p style="color:#9ca3af; font-size:0.95rem;">O ProServ simplifica a gestão de serviços para pequenas empresas, aumentando produtividade e satisfação de clientes.</p>
-      </div>
-      <div style="flex:1; min-width:150px;">
-        <h4 style="color:#fff; margin-bottom:1rem;">Links</h4>
-        <ul style="list-style:none; padding:0; line-height:2;">
-          <li><a href="index.html" style="color:#9ca3af; text-decoration:none;">Início</a></li>
-          <li><a href="planos.html" style="color:#9ca3af; text-decoration:none;">Planos</a></li>
-          <li><a href="sobre.html" style="color:#9ca3af; text-decoration:none;">Sobre</a></li>
-          <li><a href="login.html" style="color:#9ca3af; text-decoration:none;">Acessar</a></li>
-        </ul>
-      </div>
-      <div style="flex:1; min-width:200px;">
-        <h4 style="color:#fff; margin-bottom:1rem;">Contato</h4>
-        <p style="color:#9ca3af; margin-bottom:0.5rem;">Email: <a href="mailto:contato@proserv.com.br" style="color:#00ccff;">contato@proserv.com.br</a></p>
-        <p style="color:#9ca3af;">Telefone: <a href="tel:+5511999999999" style="color:#00ccff;">+55 11 99999-9999</a></p>
-        <a href="signup.html" style="display:inline-block; margin-top:1rem; padding:0.8rem 1.5rem; background-color:#00ccff; color:#111827; border-radius:8px; font-weight:600; text-decoration:none; transition:0.3s;">Assine Agora</a>
-      </div>
-    </div>
-    <div style="text-align:center; margin-top:2rem; color:#6b7280; font-size:0.85rem;">
-      &copy; 2025 ProServ. Todos os direitos reservados.
-    </div>
-  </footer>
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-<script>
-const loginForm = document.getElementById('login-form');
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = loginForm.email.value;
-  const password = loginForm.password.value;
+      msg.textContent = "Entrando...";
+      msg.style.color = "#374151";
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await window.supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
 
-  if (error) {
-    alert('Erro ao fazer login: ' + error.message);
-    return;
-  }
+      if (error) {
+        msg.textContent = "Email ou senha inválidos";
+        msg.style.color = "red";
+        return;
+      }
 
-  alert('Login realizado com sucesso!');
-  window.location.href = 'index.html'; // Ou dashboard do usuário
-});
-</script>
+      msg.textContent = "Login realizado com sucesso!";
+      msg.style.color = "green";
 
-  
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 1000);
+    });
+  </script>
+
 </body>
 </html>

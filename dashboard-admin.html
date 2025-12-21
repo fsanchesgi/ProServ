@@ -71,36 +71,18 @@
 
 <!-- PROTEÇÃO + ROLE ADMIN -->
 <script>
-  document.addEventListener("DOMContentLoaded", async () => {
+const logoutBtn = document.getElementById("logoutBtn");
 
-    const { data: sessionData } = await window.supabase.auth.getSession();
+logoutBtn.addEventListener("click", async () => {
+  await supabase.auth.signOut();
 
-    if (!sessionData.session) {
-      window.location.href = "login.html";
-      return;
-    }
+  localStorage.clear();
+  sessionStorage.clear();
 
-    const userId = sessionData.session.user.id;
-
-    const { data: profile, error } = await window.supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", userId)
-      .single();
-
-    if (error || profile.role !== "admin") {
-      window.location.href = "dashboard.html";
-      return;
-    }
-
-    // Logout
-    document.getElementById("logout-btn").addEventListener("click", async (e) => {
-      e.preventDefault();
-      await window.supabase.auth.signOut();
-      window.location.href = "index.html";
-    });
-  });
+  window.location.href = "index.html";
+});
 </script>
+
 
 </body>
 </html>

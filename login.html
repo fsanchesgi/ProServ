@@ -100,38 +100,47 @@
 
   <!-- Login Script -->
   <script>
-    const form = document.getElementById("login-form");
-    const msg = document.getElementById("msg");
+  const form = document.getElementById("login-form");
+  const msg = document.getElementById("msg");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      msg.textContent = "";
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.textContent = "Entrando...";
 
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        msg.textContent = error.message;
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", data.user.id)
-        .single();
-
-      window.location.href =
-        profile?.role === "admin"
-          ? "dashboard-admin.html"
-          : "dashboard.html";
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
     });
-  </script>
+
+    if (error) {
+      msg.textContent = error.message;
+      return;
+    }
+
+    // 🔐 BUSCA O PERFIL APÓS LOGIN CONFIRMADO
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", data.user.id)
+      .single();
+
+    if (profileError || !profile) {
+      msg.textContent = "Erro ao carregar perfil.";
+      return;
+    }
+
+    // ✅ REDIRECIONAMENTO CORRETO
+    if (profile.role === "admin") {
+      window.location.href = "dashboard-admin.html";
+    } else {
+      window.location.href = "dashboard.html";
+    }
+  });
+</script>
+
 
 </body>
 </html>

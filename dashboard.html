@@ -1,89 +1,86 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>ProServ | Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="icon" href="./images/favicon.png">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
-<!-- HEADER PADRÃO (IGUAL AO SITE) -->
+<!-- HEADER PADRÃO -->
 <header>
   <div class="container">
-    <div style="display:flex; align-items:center;">
-      <img src="./images/logo.png" alt="ProServ Logo">
-    </div>
+    <img src="./images/logo.png" alt="ProServ Logo">
     <nav>
       <a href="dashboard.html">Dashboard</a>
       <a href="agenda.html">Agenda</a>
-      <a href="#" id="logout-btn" class="button">Sair</a>
+      <button id="logoutBtn" class="button">Sair</button>
     </nav>
   </div>
 </header>
 
-<!-- HERO PADRÃO -->
-<section class="hero" style="padding:3rem 2rem;">
+<!-- CONTEÚDO -->
+<section class="dashboard">
   <div class="container">
-    <h1>Bem-vindo ao ProServ</h1>
-    <p>Gerencie seus serviços, agenda e clientes em um só lugar.</p>
+    <h1>Bem-vindo ao seu painel</h1>
+    <p>Acompanhe sua agenda, plano ativo e serviços.</p>
+
+    <div class="features">
+      <div class="card">
+        <h3>📅 Agenda</h3>
+        <p>Gerencie seus horários e atendimentos.</p>
+      </div>
+
+      <div class="card">
+        <h3>💳 Plano</h3>
+        <p>Veja seu plano ativo e benefícios.</p>
+      </div>
+
+      <div class="card">
+        <h3>👤 Perfil</h3>
+        <p>Atualize suas informações.</p>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- CONTEÚDO PADRÃO -->
-<section class="features">
-  <div class="container">
-
-    <div class="card">
-      <h3>📅 Agenda</h3>
-      <p>Visualize e organize seus atendimentos.</p>
-      <a href="agenda.html" class="plan-button">Abrir Agenda</a>
-    </div>
-
-    <div class="card">
-      <h3>🧾 Serviços</h3>
-      <p>Gerencie seus serviços oferecidos.</p>
-      <button class="plan-button">Gerenciar</button>
-    </div>
-
-    <div class="card">
-      <h3>👤 Perfil</h3>
-      <p>Atualize seus dados pessoais.</p>
-      <button class="plan-button">Editar Perfil</button>
-    </div>
-
-  </div>
-</section>
-
-<!-- FOOTER PADRÃO -->
-<footer style="background: linear-gradient(90deg, #1f2937, #111827); color: #fff; padding: 3rem 2rem;">
-  <div style="max-width:1200px; margin:auto; text-align:center;">
-    &copy; 2025 ProServ. Todos os direitos reservados.
-  </div>
-</footer>
-
-<!-- SUPABASE SDK -->
+<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- CLIENTE SUPABASE -->
 <script src="./supabase.js"></script>
 
-<!-- PROTEÇÃO + LOGOUT -->
 <script>
-const logoutBtn = document.getElementById("logoutBtn");
+document.addEventListener("DOMContentLoaded", async () => {
 
-logoutBtn.addEventListener("click", async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  // 🔐 Garante que ADMIN não entra aqui
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", session.user.id)
+    .single();
+
+  if (profile.role === "admin") {
+    window.location.href = "dashboard-admin.html";
+  }
+});
+
+// LOGOUT
+document.getElementById("logoutBtn").addEventListener("click", async () => {
   await supabase.auth.signOut();
-
   localStorage.clear();
   sessionStorage.clear();
-
   window.location.href = "index.html";
 });
 </script>
-
 
 </body>
 </html>

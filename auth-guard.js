@@ -1,4 +1,3 @@
-<script>
   document.addEventListener("DOMContentLoaded", async () => {
     const {
       data: { session }
@@ -29,4 +28,3 @@
       window.location.href = "dashboard.html";
     }
   });
-</script>

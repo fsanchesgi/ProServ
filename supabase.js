@@ -5,15 +5,3 @@ window.supabase = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
-
-const logoutBtn = document.getElementById("logoutBtn");
-
-  logoutBtn.addEventListener("click", async () => {
-    await window.supabase.auth.signOut();
-
-    // Segurança extra: limpa storage
-    localStorage.clear();
-    sessionStorage.clear();
-
-    window.location.href = "index.html";
-  });

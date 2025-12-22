@@ -88,14 +88,36 @@ const lista = document.getElementById("lista-agenda");
 const msg = document.getElementById("msg");
 const selectServico = document.getElementById("servico");
 
-const { data: { user } } = await supabase.auth.getUser();
+let user = null;
+
+/* 🔐 iniciar */
+document.addEventListener("DOMContentLoaded", async () => {
+
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error || !data.user) {
+    console.error("Usuário não autenticado");
+    return;
+  }
+
+  user = data.user;
+
+  await carregarServicos();
+  await carregarAgenda();
+});
 
 /* 🔽 carregar serviços */
 async function carregarServicos() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("servicos")
     .select("*")
-    .eq("usuario_id", user.id);
+    .eq("usuario_id", user.id)
+    .order("nome");
+
+  if (error) {
+    console.error(error.message);
+    return;
+  }
 
   selectServico.innerHTML = `<option value="">Selecione</option>`;
 
@@ -112,7 +134,7 @@ async function carregarServicos() {
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const cliente = cliente.value;
+  const cliente = document.getElementById("cliente").value;
   const servicoId = selectServico.value;
   const duracao = selectServico.selectedOptions[0].dataset.duracao;
   const data = document.getElementById("data").value;
@@ -148,7 +170,7 @@ form.addEventListener("submit", async (e) => {
 async function carregarAgenda() {
   lista.innerHTML = "";
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("agendamentos")
     .select(`
       *,
@@ -156,6 +178,11 @@ async function carregarAgenda() {
     `)
     .eq("usuario_id", user.id)
     .order("data_agendamento", { ascending: true });
+
+  if (error) {
+    console.error(error.message);
+    return;
+  }
 
   data.forEach(a => {
     const li = document.createElement("li");
@@ -168,6 +195,14 @@ async function carregarAgenda() {
     lista.appendChild(li);
   });
 }
+
+/* 🚪 logout */
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await supabase.auth.signOut();
+  window.location.href = "index.html";
+});
+</script>
+
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
   await supabase.auth.signOut();

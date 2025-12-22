@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>ProServ | Minha Agenda</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<!-- HEADER PADRÃO (COMPACTO) -->
+<header class="dashboard-header-fixed">
+  <div class="container dashboard-header-container">
+    <div class="logo-area">
+      <img src="./images/logo.png" alt="ProServ Logo">
+    </div>
+
+    <nav class="dashboard-nav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="agenda.html" class="active">Agenda</a>
+      <a href="perfil.html">Perfil</a>
+      <button id="logoutBtn" class="logout-btn">Sair</button>
+    </nav>
+  </div>
+</header>
+
+<!-- AGENDA -->
+<section class="dashboard-page">
+  <div class="container">
+
+    <!-- TÍTULO -->
+    <div class="dashboard-welcome">
+      <h1>📅 Minha Agenda</h1>
+      <p>Organize seus atendimentos e serviços.</p>
+    </div>
+
+    <!-- AÇÕES -->
+    <div class="agenda-actions">
+      <button class="plan-button" id="btnNovoAtendimento">
+        + Novo Atendimento
+      </button>
+    </div>
+
+    <!-- LISTA DE ATENDIMENTOS -->
+    <div class="agenda-list">
+
+      <!-- ITEM -->
+      <div class="agenda-card">
+        <div class="agenda-info">
+          <h3>Corte de Cabelo</h3>
+          <p><strong>Cliente:</strong> João Silva</p>
+          <p><strong>Data:</strong> 25/01/2025</p>
+          <p><strong>Horário:</strong> 14:00</p>
+          <p><strong>Valor:</strong> R$ 50,00</p>
+        </div>
+
+        <div class="agenda-actions-card">
+          <button class="btn-secondary">Editar</button>
+          <button class="btn-danger">Cancelar</button>
+        </div>
+      </div>
+
+      <!-- ITEM -->
+      <div class="agenda-card">
+        <div class="agenda-info">
+          <h3>Manicure</h3>
+          <p><strong>Cliente:</strong> Maria Souza</p>
+          <p><strong>Data:</strong> 26/01/2025</p>
+          <p><strong>Horário:</strong> 10:00</p>
+          <p><strong>Valor:</strong> R$ 40,00</p>
+        </div>
+
+        <div class="agenda-actions-card">
+          <button class="btn-secondary">Editar</button>
+          <button class="btn-danger">Cancelar</button>
+        </div>
+      </div>
+
+      <!-- VAZIO (estado futuro dinâmico) -->
+      <!--
+      <p class="agenda-empty">
+        Nenhum atendimento cadastrado ainda.
+      </p>
+      -->
+
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer-padrao">
+  <div class="container footer-content">
+    <img src="./images/logo.png" alt="ProServ Logo">
+    <p>&copy; 2025 ProServ. Todos os direitos reservados.</p>
+  </div>
+</footer>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase.js"></script>
+
+<!-- PROTEÇÃO DE ROTAS -->
+<script src="./protect.js"></script>
+
+<!-- LOGOUT -->
+<script>
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = "index.html";
+  });
+</script>
+
+</body>
+</html>

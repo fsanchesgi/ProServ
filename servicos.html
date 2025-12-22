@@ -109,11 +109,12 @@ document.getElementById("servico-form").addEventListener("submit", async e => {
   e.preventDefault();
 
   const { error } = await supabase.from("servicos").insert({
-    user_id: userId,
-    nome: nome.value,
-    descricao: descricao.value,
-    valor: valor.value
-  });
+  user_id: userId,
+  nome: nome.value,
+  descricao: descricao.value,
+  valor: valor.value,
+  duracao_minutos: duracao.value
+});
 
   if (error) {
     msg.textContent = error.message;

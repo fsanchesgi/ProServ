@@ -1,97 +1,96 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>ProServ | Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="icon" href="./images/favicon.png">
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="./images/favicon.png">
+
+  <!-- CSS -->
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
-<!-- HEADER PADRÃO -->
-<header>
-  <div class="container">
-    <img src="./images/logo.png" alt="ProServ Logo">
-    <nav>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="agenda.html">Agenda</a>
-     <button id="logoutBtn">Sair</button>
+  <!-- HEADER PADRÃO -->
+  <header>
+    <div class="container">
+      <div style="display:flex; align-items:center;">
+        <img src="./images/logo.png" alt="ProServ Logo">
+      </div>
+      <nav>
+        <a href="dashboard.html" class="active">Dashboard</a>
+        <a href="#">Agenda</a>
+        <a href="#">Perfil</a>
+        <button id="logoutBtn" class="button">Sair</button>
+      </nav>
+    </div>
+  </header>
 
-<script>
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await supabase.auth.signOut();
-  localStorage.clear();
-  sessionStorage.clear();
-  window.location.href = "index.html";
-});
-</script>
+  <!-- DASHBOARD -->
+  <section class="dashboard-page">
+    <div class="container">
 
-    </nav>
-  </div>
-</header>
-
-<!-- CONTEÚDO -->
-<section class="dashboard">
-  <div class="container">
-    <h1>Bem-vindo ao seu painel</h1>
-    <p>Acompanhe sua agenda, plano ativo e serviços.</p>
-
-    <div class="features">
-      <div class="card">
-        <h3>📅 Agenda</h3>
-        <p>Gerencie seus horários e atendimentos.</p>
+      <!-- BOAS-VINDAS -->
+      <div class="dashboard-header">
+        <h1>Bem-vindo ao ProServ 👋</h1>
+        <p>Gerencie seus serviços, agenda e atendimentos em um só lugar.</p>
       </div>
 
-      <div class="card">
-        <h3>💳 Plano</h3>
-        <p>Veja seu plano ativo e benefícios.</p>
-      </div>
+      <!-- CARDS -->
+      <div class="dashboard-cards">
 
-      <div class="card">
-        <h3>👤 Perfil</h3>
-        <p>Atualize suas informações.</p>
+        <div class="dashboard-card">
+          <h3>📅 Minha Agenda</h3>
+          <p>Visualize e gerencie seus horários e atendimentos.</p>
+          <button class="plan-button">Acessar Agenda</button>
+        </div>
+
+        <div class="dashboard-card">
+          <h3>🧾 Meus Serviços</h3>
+          <p>Cadastre e edite os serviços que você oferece.</p>
+          <button class="plan-button">Gerenciar Serviços</button>
+        </div>
+
+        <div class="dashboard-card">
+          <h3>👤 Meu Perfil</h3>
+          <p>Atualize seus dados e informações da conta.</p>
+          <button class="plan-button">Editar Perfil</button>
+        </div>
+
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- SUPABASE -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./supabase.js"></script>
-<script src="./protect.js"></script>
-  
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
+  <!-- FOOTER PADRÃO -->
+  <footer style="background: linear-gradient(90deg, #1f2937, #111827); color: #fff; padding: 3rem 2rem;">
+    <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:2rem;">
+      <div>
+        <img src="./images/logo.png" alt="ProServ Logo" style="width:150px; margin-bottom:1rem;">
+        <p style="color:#9ca3af;">&copy; 2025 ProServ. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
 
-  const { data: { session } } = await supabase.auth.getSession();
+  <!-- SUPABASE SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  if (!session) {
-    window.location.href = "login.html";
-    return;
-  }
+  <!-- CLIENTE SUPABASE -->
+  <script src="./supabase.js"></script>
 
-  // 🔐 Garante que ADMIN não entra aqui
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", session.user.id)
-    .single();
+  <!-- PROTEÇÃO DE ROTAS -->
+  <script src="./protect.js"></script>
 
-  if (profile.role === "admin") {
-    window.location.href = "dashboard-admin.html";
-  }
-});
-
-// LOGOUT
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await supabase.auth.signOut();
-  localStorage.clear();
-  sessionStorage.clear();
-  window.location.href = "index.html";
-});
-</script>
+  <!-- LOGOUT -->
+  <script>
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "index.html";
+    });
+  </script>
 
 </body>
 </html>

@@ -45,8 +45,8 @@
         <div class="form-group">
           <label>Serviço</label>
           <select id="servico" required>
-          <option value="">Selecione o serviço</option>
-        </select>
+            <option value="">Selecione o serviço</option>
+          </select>
         </div>
 
         <div class="form-group">
@@ -92,7 +92,6 @@ let user = null;
 
 /* 🔐 iniciar */
 document.addEventListener("DOMContentLoaded", async () => {
-
   const { data, error } = await supabase.auth.getUser();
 
   if (error || !data.user) {
@@ -110,7 +109,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function carregarServicos() {
   const { data, error } = await supabase
     .from("servicos")
-    .select("id, nome, duracao_minutos")
+    .select("id, nome, duracao_minutos, valor")
     .eq("user_id", user.id)
     .eq("ativo", true)
     .order("nome");
@@ -132,7 +131,7 @@ async function carregarServicos() {
     opt.value = s.id;
     opt.dataset.duracao = s.duracao_minutos;
     opt.dataset.valor = s.valor;
-    opt.textContent = `${s.nome} (${s.duracao_minutos} min)`;
+    opt.textContent = `${s.nome} (${s.duracao_minutos} min) - R$ ${s.valor}`;
     selectServico.appendChild(opt);
   });
 }
@@ -144,10 +143,23 @@ form.addEventListener("submit", async (e) => {
   const cliente = document.getElementById("cliente").value;
   const servicoId = selectServico.value;
   const option = selectServico.selectedOptions[0];
-  const duracao = option.dataset.duracao;
-  const valor = option.dataset.valor;
-  const data = document.getElementById("data").value;
+
+  if (!option) {
+    msg.textContent = "Selecione um serviço válido";
+    msg.style.color = "red";
+    return;
+  }
+
+  const duracao = Number(option.dataset.duracao);
+  const valor = Number(option.dataset.valor);
+  const dataAg = document.getElementById("data").value;
   const hora = document.getElementById("hora").value;
+
+  if (isNaN(valor) || valor <= 0) {
+    msg.textContent = "Serviço sem valor válido";
+    msg.style.color = "red";
+    return;
+  }
 
   msg.textContent = "Salvando...";
 
@@ -157,13 +169,12 @@ form.addEventListener("submit", async (e) => {
       usuario_id: user.id,
       cliente_nome: cliente,
       servico_id: servicoId,
-      data_agendamento: data,
+      data_agendamento: dataAg,
       hora,
       duracao_minutos: duracao,
-      valor: valor,
+      valor,
       status: "agendado"
-  });
-
+    });
 
   if (error) {
     msg.textContent = error.message;
@@ -213,7 +224,6 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   window.location.href = "index.html";
 });
 </script>
-
 
 </body>
 </html>

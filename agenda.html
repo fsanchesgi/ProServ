@@ -112,7 +112,7 @@ async function carregarServicos() {
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const cliente = clienteInput.value;
+  const cliente = document.getElementById("cliente").value;
   const option = selectServico.selectedOptions[0];
   const dataAg = data.value;
   const horaAg = hora.value;

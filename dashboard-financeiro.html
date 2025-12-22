@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>ProServ | Financeiro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="icon" href="./images/favicon.png">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="container">
+    <img src="./images/logo.png" alt="ProServ Logo">
+    <nav>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="agenda.html">Agenda</a>
+      <a href="dashboard-financeiro.html" class="active">Financeiro</a>
+      <button id="logoutBtn">Sair</button>
+    </nav>
+  </div>
+</header>
+
+<!-- FINANCEIRO -->
+<section class="dashboard-page">
+  <div class="container">
+
+    <div class="dashboard-header">
+      <h1>💰 Financeiro</h1>
+      <p>Controle seus ganhos e pagamentos</p>
+    </div>
+
+    <!-- RESUMO -->
+    <div class="dashboard-cards">
+
+      <div class="dashboard-card">
+        <h3>Total Faturado</h3>
+        <p id="total-faturado" class="valor">R$ 0,00</p>
+      </div>
+
+      <div class="dashboard-card">
+        <h3>Recebido</h3>
+        <p id="total-pago" class="valor recebido">R$ 0,00</p>
+      </div>
+
+      <div class="dashboard-card">
+        <h3>Pendente</h3>
+        <p id="total-pendente" class="valor pendente">R$ 0,00</p>
+      </div>
+
+    </div>
+
+    <!-- LISTA -->
+    <div class="dashboard-card">
+      <h3>Lançamentos</h3>
+
+      <table class="finance-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Cliente</th>
+            <th>Valor</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="lista-financeiro"></tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<footer style="background:#111827; color:#9ca3af; text-align:center; padding:2rem;">
+  &copy; 2025 ProServ
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase.js"></script>
+<script src="./protect.js"></script>
+
+<script>
+const lista = document.getElementById("lista-financeiro");
+const totalFaturadoEl = document.getElementById("total-faturado");
+const totalPagoEl = document.getElementById("total-pago");
+const totalPendenteEl = document.getElementById("total-pendente");
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await supabase.auth.signOut();
+  window.location.href = "index.html";
+});
+
+async function carregarFinanceiro() {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data, error } = await supabase
+    .from("financeiro")
+    .select(`
+      *,
+      agendamentos(cliente_nome, data_agendamento)
+    `)
+    .eq("user_id", user.id)
+    .order("criado_em", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  let total = 0;
+  let pago = 0;
+  let pendente = 0;
+
+  lista.innerHTML = "";
+
+  data.forEach(f => {
+    total += Number(f.valor);
+
+    if (f.status === "pago") {
+      pago += Number(f.valor);
+    } else {
+      pendente += Number(f.valor);
+    }
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${f.agendamentos?.data_agendamento || "-"}</td>
+      <td>${f.agendamentos?.cliente_nome || "-"}</td>
+      <td>R$ ${Number(f.valor).toFixed(2)}</td>
+      <td>
+        <span class="status ${f.status}">
+          ${f.status}
+        </span>
+      </td>
+    `;
+
+    lista.appendChild(tr);
+  });
+
+  totalFaturadoEl.textContent = `R$ ${total.toFixed(2)}`;
+  totalPagoEl.textContent = `R$ ${pago.toFixed(2)}`;
+  totalPendenteEl.textContent = `R$ ${pendente.toFixed(2)}`;
+}
+
+carregarFinanceiro();
+</script>
+
+</body>
+</html>

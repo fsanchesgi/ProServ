@@ -2,19 +2,18 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>ProServ | Minha Agenda</title>
+  <title>ProServ | Agenda</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="icon" href="./images/favicon.png">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
-<!-- HEADER PADRÃO (menor, organizado) -->
-<header class="dashboard-header-fixed">
+<!-- HEADER -->
+<header>
   <div class="container">
-    <img src="./images/logo.png" alt="ProServ Logo" class="logo-sm">
-
+    <img src="./images/logo.png" alt="ProServ Logo">
     <nav>
       <a href="dashboard.html">Dashboard</a>
       <a href="agenda.html" class="active">Agenda</a>
@@ -23,141 +22,113 @@
   </div>
 </header>
 
-<!-- CONTEÚDO -->
+<!-- AGENDA -->
 <section class="dashboard-page">
   <div class="container">
 
-    <h1>📅 Minha Agenda</h1>
-    <p>Gerencie seus atendimentos e valores realizados</p>
+    <div class="dashboard-header">
+      <h1>📅 Agenda</h1>
+      <p>Gerencie seus atendimentos</p>
+    </div>
 
-    <!-- FORMULÁRIO -->
-    <div class="agenda-form">
+    <!-- NOVO -->
+    <div class="dashboard-card">
       <h3>Novo Atendimento</h3>
 
       <form id="agenda-form">
-        <input type="text" id="cliente_nome" placeholder="Nome do cliente" required>
 
-        <input type="text" id="cliente_telefone" placeholder="Telefone">
+        <div class="form-group">
+          <label>Cliente</label>
+          <input type="text" id="cliente" required>
+        </div>
 
-        <select id="servico" required>
-          <option value="">Selecione o serviço</option>
-        </select>
+        <div class="form-group">
+          <label>Serviço</label>
+          <select id="servico" required></select>
+        </div>
 
-        <input type="date" id="data" required>
-        <input type="time" id="hora" required>
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" id="data" required>
+        </div>
 
-        <button type="submit" class="plan-button">Salvar Atendimento</button>
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="time" id="hora" required>
+        </div>
+
+        <button class="plan-button">Salvar</button>
       </form>
 
       <p id="msg"></p>
     </div>
 
     <!-- LISTA -->
-    <div class="agenda-list">
+    <div class="dashboard-card">
       <h3>Atendimentos</h3>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Cliente</th>
-            <th>Serviço</th>
-            <th>Data</th>
-            <th>Hora</th>
-            <th>Valor</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="agenda-body"></tbody>
-      </table>
+      <ul id="lista-agenda" class="agenda-list"></ul>
     </div>
 
   </div>
 </section>
 
-<!-- FOOTER PADRÃO -->
-<footer class="dashboard-footer">
-  <p>&copy; 2025 ProServ</p>
+<footer style="background:#111827; color:#9ca3af; text-align:center; padding:2rem;">
+  &copy; 2025 ProServ
 </footer>
 
-<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase.js"></script>
 <script src="./protect.js"></script>
 
 <script>
-let userId = null;
+const form = document.getElementById("agenda-form");
+const lista = document.getElementById("lista-agenda");
+const msg = document.getElementById("msg");
+const selectServico = document.getElementById("servico");
 
-// 🔐 sessão
-async function loadSession() {
-  const { data } = await supabase.auth.getUser();
-  userId = data.user.id;
-}
+const { data: { user } } = await supabase.auth.getUser();
 
-// 🔧 carregar serviços
-async function loadServicos() {
+/* 🔽 carregar serviços */
+async function carregarServicos() {
   const { data } = await supabase
     .from("servicos")
     .select("*")
-    .order("nome");
+    .eq("usuario_id", user.id);
 
-  const select = document.getElementById("servico");
+  selectServico.innerHTML = `<option value="">Selecione</option>`;
 
   data.forEach(s => {
     const opt = document.createElement("option");
     opt.value = s.id;
-    opt.textContent = `${s.nome} - R$ ${s.valor}`;
-    opt.dataset.valor = s.valor;
-    select.appendChild(opt);
+    opt.dataset.duracao = s.duracao_minutos;
+    opt.textContent = `${s.nome} (${s.duracao_minutos} min)`;
+    selectServico.appendChild(opt);
   });
 }
 
-// 📋 carregar agenda
-async function loadAgenda() {
-  const { data } = await supabase
-    .from("agenda")
-    .select(`
-      cliente_nome,
-      data,
-      hora,
-      valor,
-      status,
-      servicos(nome)
-    `)
-    .order("data", { ascending: false });
-
-  const tbody = document.getElementById("agenda-body");
-  tbody.innerHTML = "";
-
-  data.forEach(a => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${a.cliente_nome}</td>
-      <td>${a.servicos.nome}</td>
-      <td>${a.data}</td>
-      <td>${a.hora}</td>
-      <td>R$ ${a.valor}</td>
-      <td>${a.status}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-// ➕ salvar atendimento
-document.getElementById("agenda-form").addEventListener("submit", async e => {
+/* 💾 salvar */
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const servicoSelect = document.getElementById("servico");
-  const valor = servicoSelect.selectedOptions[0].dataset.valor;
+  const cliente = cliente.value;
+  const servicoId = selectServico.value;
+  const duracao = selectServico.selectedOptions[0].dataset.duracao;
+  const data = document.getElementById("data").value;
+  const hora = document.getElementById("hora").value;
 
-  const { error } = await supabase.from("agenda").insert({
-    user_id: userId,
-    servico_id: servicoSelect.value,
-    cliente_nome: cliente_nome.value,
-    cliente_telefone: cliente_telefone.value,
-    data: data.value,
-    hora: hora.value,
-    valor
-  });
+  msg.textContent = "Salvando...";
+
+  const { error } = await supabase
+    .from("agendamentos")
+    .insert({
+      usuario_id: user.id,
+      cliente_nome: cliente,
+      servico_id: servicoId,
+      data_agendamento: data,
+      hora,
+      duracao_minutos: duracao,
+      status: "agendado"
+    });
 
   if (error) {
     msg.textContent = error.message;
@@ -165,25 +136,44 @@ document.getElementById("agenda-form").addEventListener("submit", async e => {
     return;
   }
 
-  msg.textContent = "Atendimento salvo com sucesso!";
+  msg.textContent = "Atendimento salvo!";
   msg.style.color = "green";
-
-  e.target.reset();
-  loadAgenda();
+  form.reset();
+  carregarAgenda();
 });
 
-// 🚪 logout
-document.getElementById("logoutBtn").onclick = async () => {
+/* 📋 listar */
+async function carregarAgenda() {
+  lista.innerHTML = "";
+
+  const { data } = await supabase
+    .from("agendamentos")
+    .select(`
+      *,
+      servicos(nome)
+    `)
+    .eq("usuario_id", user.id)
+    .order("data_agendamento", { ascending: true });
+
+  data.forEach(a => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <strong>${a.cliente_nome}</strong><br>
+      ${a.data_agendamento} às ${a.hora}<br>
+      Serviço: ${a.servicos?.nome || "-"}<br>
+      Duração: ${a.duracao_minutos} min
+    `;
+    lista.appendChild(li);
+  });
+}
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
   await supabase.auth.signOut();
   window.location.href = "index.html";
-};
+});
 
-// INIT
-(async () => {
-  await loadSession();
-  await loadServicos();
-  await loadAgenda();
-})();
+carregarServicos();
+carregarAgenda();
 </script>
 
 </body>

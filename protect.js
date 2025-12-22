@@ -1,4 +1,3 @@
-<script>
 document.addEventListener("DOMContentLoaded", async () => {
   const { data: { session } } = await supabase.auth.getSession();
 
@@ -36,4 +35,3 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 });
-</script>

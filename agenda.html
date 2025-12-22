@@ -143,7 +143,9 @@ form.addEventListener("submit", async (e) => {
 
   const cliente = document.getElementById("cliente").value;
   const servicoId = selectServico.value;
-  const duracao = selectServico.selectedOptions[0].dataset.duracao;
+  const option = selectServico.selectedOptions[0];
+  const duracao = option.dataset.duracao;
+  const valor = option.dataset.valor;
   const data = document.getElementById("data").value;
   const hora = document.getElementById("hora").value;
 
@@ -158,8 +160,10 @@ form.addEventListener("submit", async (e) => {
       data_agendamento: data,
       hora,
       duracao_minutos: duracao,
+      valor: valor,
       status: "agendado"
-    });
+  });
+
 
   if (error) {
     msg.textContent = error.message;

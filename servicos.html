@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>ProServ | Meus Serviços</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<!-- HEADER PADRÃO REDUZIDO -->
+<header class="dashboard-header-fixed">
+  <div class="container">
+    <img src="./images/logo.png" alt="ProServ Logo" class="logo-sm">
+
+    <nav>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="servicos.html" class="active">Serviços</a>
+      <a href="agenda.html">Agenda</a>
+      <button id="logoutBtn">Sair</button>
+    </nav>
+  </div>
+</header>
+
+<section class="dashboard-page">
+  <div class="container">
+
+    <h1>🧾 Meus Serviços</h1>
+    <p>Cadastre os serviços que você oferece</p>
+
+    <!-- FORM -->
+    <div class="agenda-form">
+      <h3>Novo Serviço</h3>
+
+      <form id="servico-form">
+        <input type="text" id="nome" placeholder="Nome do serviço" required>
+        <input type="number" id="valor" placeholder="Valor (R$)" required min="0" step="0.01">
+        <textarea id="descricao" placeholder="Descrição (opcional)"></textarea>
+
+        <button class="plan-button" type="submit">Salvar Serviço</button>
+      </form>
+
+      <p id="msg"></p>
+    </div>
+
+    <!-- LISTA -->
+    <div class="agenda-list">
+      <h3>Serviços cadastrados</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Serviço</th>
+            <th>Descrição</th>
+            <th>Valor</th>
+          </tr>
+        </thead>
+        <tbody id="servicos-body"></tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<footer class="dashboard-footer">
+  <p>&copy; 2025 ProServ</p>
+</footer>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase.js"></script>
+<script src="./protect.js"></script>
+
+<script>
+let userId = null;
+
+// 🔐 sessão
+async function loadSession() {
+  const { data } = await supabase.auth.getUser();
+  userId = data.user.id;
+}
+
+// 📋 listar serviços
+async function loadServicos() {
+  const { data } = await supabase
+    .from("servicos")
+    .select("*")
+    .order("nome");
+
+  const tbody = document.getElementById("servicos-body");
+  tbody.innerHTML = "";
+
+  data.forEach(s => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${s.nome}</td>
+      <td>${s.descricao || "-"}</td>
+      <td>R$ ${s.valor}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ➕ salvar serviço
+document.getElementById("servico-form").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const { error } = await supabase.from("servicos").insert({
+    user_id: userId,
+    nome: nome.value,
+    descricao: descricao.value,
+    valor: valor.value
+  });
+
+  if (error) {
+    msg.textContent = error.message;
+    msg.style.color = "red";
+    return;
+  }
+
+  msg.textContent = "Serviço cadastrado com sucesso!";
+  msg.style.color = "green";
+
+  e.target.reset();
+  loadServicos();
+});
+
+// 🚪 logout
+document.getElementById("logoutBtn").onclick = async () => {
+  await supabase.auth.signOut();
+  window.location.href = "index.html";
+};
+
+// INIT
+(async () => {
+  await loadSession();
+  await loadServicos();
+})();
+</script>
+
+</body>
+</html>

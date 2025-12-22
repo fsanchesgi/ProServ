@@ -23,7 +23,16 @@
         <a href="dashboard.html" class="active">Dashboard</a>
         <a href="#">Agenda</a>
         <a href="#">Perfil</a>
-        <button id="logoutBtn" class="button">Sair</button>
+        <button id="logoutBtn">Sair</button>
+
+<script>
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await supabase.auth.signOut();
+  localStorage.clear();
+  sessionStorage.clear();
+  window.location.href = "index.html";
+});
+</script>
       </nav>
     </div>
   </header>

@@ -37,8 +37,9 @@
       <form id="servico-form">
         <input type="text" id="nome" placeholder="Nome do serviço" required>
         <input type="number" id="valor" placeholder="Valor (R$)" required min="0" step="0.01">
+        <input type="number" id="duracao" placeholder="Duração (em minutos)" required min="5" step="5"/>
         <textarea id="descricao" placeholder="Descrição (opcional)"></textarea>
-
+                
         <button class="plan-button" type="submit">Salvar Serviço</button>
       </form>
 

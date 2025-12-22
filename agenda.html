@@ -110,16 +110,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function carregarServicos() {
   const { data, error } = await supabase
     .from("servicos")
-    .select("*")
+    .select("id, nome, duracao_minutos")
     .eq("usuario_id", user.id)
     .order("nome");
 
   if (error) {
-    console.error(error.message);
+    console.error("Erro ao carregar serviços:", error.message);
     return;
   }
 
-  selectServico.innerHTML = `<option value="">Selecione</option>`;
+  selectServico.innerHTML = `<option value="">Selecione o serviço</option>`;
+
+  if (!data || data.length === 0) {
+    console.warn("Nenhum serviço encontrado");
+    return;
+  }
 
   data.forEach(s => {
     const opt = document.createElement("option");
@@ -203,15 +208,6 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 });
 </script>
 
-
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await supabase.auth.signOut();
-  window.location.href = "index.html";
-});
-
-carregarServicos();
-carregarAgenda();
-</script>
 
 </body>
 </html>

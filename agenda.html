@@ -10,109 +10,180 @@
 </head>
 <body>
 
-<!-- HEADER PADRÃO (COMPACTO) -->
+<!-- HEADER PADRÃO (menor, organizado) -->
 <header class="dashboard-header-fixed">
-  <div class="container dashboard-header-container">
-    <div class="logo-area">
-      <img src="./images/logo.png" alt="ProServ Logo">
-    </div>
+  <div class="container">
+    <img src="./images/logo.png" alt="ProServ Logo" class="logo-sm">
 
-    <nav class="dashboard-nav">
+    <nav>
       <a href="dashboard.html">Dashboard</a>
       <a href="agenda.html" class="active">Agenda</a>
-      <a href="perfil.html">Perfil</a>
-      <button id="logoutBtn" class="logout-btn">Sair</button>
+      <button id="logoutBtn">Sair</button>
     </nav>
   </div>
 </header>
 
-<!-- AGENDA -->
+<!-- CONTEÚDO -->
 <section class="dashboard-page">
   <div class="container">
 
-    <!-- TÍTULO -->
-    <div class="dashboard-welcome">
-      <h1>📅 Minha Agenda</h1>
-      <p>Organize seus atendimentos e serviços.</p>
+    <h1>📅 Minha Agenda</h1>
+    <p>Gerencie seus atendimentos e valores realizados</p>
+
+    <!-- FORMULÁRIO -->
+    <div class="agenda-form">
+      <h3>Novo Atendimento</h3>
+
+      <form id="agenda-form">
+        <input type="text" id="cliente_nome" placeholder="Nome do cliente" required>
+
+        <input type="text" id="cliente_telefone" placeholder="Telefone">
+
+        <select id="servico" required>
+          <option value="">Selecione o serviço</option>
+        </select>
+
+        <input type="date" id="data" required>
+        <input type="time" id="hora" required>
+
+        <button type="submit" class="plan-button">Salvar Atendimento</button>
+      </form>
+
+      <p id="msg"></p>
     </div>
 
-    <!-- AÇÕES -->
-    <div class="agenda-actions">
-      <button class="plan-button" id="btnNovoAtendimento">
-        + Novo Atendimento
-      </button>
-    </div>
-
-    <!-- LISTA DE ATENDIMENTOS -->
+    <!-- LISTA -->
     <div class="agenda-list">
+      <h3>Atendimentos</h3>
 
-      <!-- ITEM -->
-      <div class="agenda-card">
-        <div class="agenda-info">
-          <h3>Corte de Cabelo</h3>
-          <p><strong>Cliente:</strong> João Silva</p>
-          <p><strong>Data:</strong> 25/01/2025</p>
-          <p><strong>Horário:</strong> 14:00</p>
-          <p><strong>Valor:</strong> R$ 50,00</p>
-        </div>
-
-        <div class="agenda-actions-card">
-          <button class="btn-secondary">Editar</button>
-          <button class="btn-danger">Cancelar</button>
-        </div>
-      </div>
-
-      <!-- ITEM -->
-      <div class="agenda-card">
-        <div class="agenda-info">
-          <h3>Manicure</h3>
-          <p><strong>Cliente:</strong> Maria Souza</p>
-          <p><strong>Data:</strong> 26/01/2025</p>
-          <p><strong>Horário:</strong> 10:00</p>
-          <p><strong>Valor:</strong> R$ 40,00</p>
-        </div>
-
-        <div class="agenda-actions-card">
-          <button class="btn-secondary">Editar</button>
-          <button class="btn-danger">Cancelar</button>
-        </div>
-      </div>
-
-      <!-- VAZIO (estado futuro dinâmico) -->
-      <!--
-      <p class="agenda-empty">
-        Nenhum atendimento cadastrado ainda.
-      </p>
-      -->
-
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Serviço</th>
+            <th>Data</th>
+            <th>Hora</th>
+            <th>Valor</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="agenda-body"></tbody>
+      </table>
     </div>
 
   </div>
 </section>
 
-<!-- FOOTER -->
-<footer class="footer-padrao">
-  <div class="container footer-content">
-    <img src="./images/logo.png" alt="ProServ Logo">
-    <p>&copy; 2025 ProServ. Todos os direitos reservados.</p>
-  </div>
+<!-- FOOTER PADRÃO -->
+<footer class="dashboard-footer">
+  <p>&copy; 2025 ProServ</p>
 </footer>
 
 <!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase.js"></script>
-
-<!-- PROTEÇÃO DE ROTAS -->
 <script src="./protect.js"></script>
 
-<!-- LOGOUT -->
 <script>
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await supabase.auth.signOut();
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "index.html";
+let userId = null;
+
+// 🔐 sessão
+async function loadSession() {
+  const { data } = await supabase.auth.getUser();
+  userId = data.user.id;
+}
+
+// 🔧 carregar serviços
+async function loadServicos() {
+  const { data } = await supabase
+    .from("servicos")
+    .select("*")
+    .order("nome");
+
+  const select = document.getElementById("servico");
+
+  data.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = `${s.nome} - R$ ${s.valor}`;
+    opt.dataset.valor = s.valor;
+    select.appendChild(opt);
   });
+}
+
+// 📋 carregar agenda
+async function loadAgenda() {
+  const { data } = await supabase
+    .from("agenda")
+    .select(`
+      cliente_nome,
+      data,
+      hora,
+      valor,
+      status,
+      servicos(nome)
+    `)
+    .order("data", { ascending: false });
+
+  const tbody = document.getElementById("agenda-body");
+  tbody.innerHTML = "";
+
+  data.forEach(a => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${a.cliente_nome}</td>
+      <td>${a.servicos.nome}</td>
+      <td>${a.data}</td>
+      <td>${a.hora}</td>
+      <td>R$ ${a.valor}</td>
+      <td>${a.status}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ➕ salvar atendimento
+document.getElementById("agenda-form").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const servicoSelect = document.getElementById("servico");
+  const valor = servicoSelect.selectedOptions[0].dataset.valor;
+
+  const { error } = await supabase.from("agenda").insert({
+    user_id: userId,
+    servico_id: servicoSelect.value,
+    cliente_nome: cliente_nome.value,
+    cliente_telefone: cliente_telefone.value,
+    data: data.value,
+    hora: hora.value,
+    valor
+  });
+
+  if (error) {
+    msg.textContent = error.message;
+    msg.style.color = "red";
+    return;
+  }
+
+  msg.textContent = "Atendimento salvo com sucesso!";
+  msg.style.color = "green";
+
+  e.target.reset();
+  loadAgenda();
+});
+
+// 🚪 logout
+document.getElementById("logoutBtn").onclick = async () => {
+  await supabase.auth.signOut();
+  window.location.href = "index.html";
+};
+
+// INIT
+(async () => {
+  await loadSession();
+  await loadServicos();
+  await loadAgenda();
+})();
 </script>
 
 </body>

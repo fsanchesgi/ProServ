@@ -131,6 +131,7 @@ async function carregarServicos() {
     const opt = document.createElement("option");
     opt.value = s.id;
     opt.dataset.duracao = s.duracao_minutos;
+    opt.dataset.valor = s.valor;
     opt.textContent = `${s.nome} (${s.duracao_minutos} min)`;
     selectServico.appendChild(opt);
   });

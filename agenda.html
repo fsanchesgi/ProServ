@@ -32,9 +32,8 @@
 
     header nav a {
       color: #fff;
-      text-decoration: none;
       margin-right: 1.5rem;
-      font-weight: 500;
+      text-decoration: none;
     }
 
     header nav a.active {
@@ -56,16 +55,6 @@
       padding: 0 2rem;
     }
 
-    .dashboard-header h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-
-    .dashboard-header p {
-      margin: .25rem 0 2rem;
-      color: #6b7280;
-    }
-
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -79,38 +68,6 @@
       box-shadow: 0 4px 12px rgba(0,0,0,.05);
     }
 
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    label {
-      font-weight: 500;
-      display: block;
-      margin-bottom: .25rem;
-    }
-
-    input, select {
-      width: 100%;
-      padding: .5rem;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-    }
-
-    .btn-primary {
-      background: #4f46e5;
-      color: #fff;
-      border: none;
-      padding: .6rem 1.2rem;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .agenda-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
     .agenda-list li {
       background: #f3f4f6;
       border-radius: 8px;
@@ -119,11 +76,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 1rem;
     }
 
     .actions button {
-      margin-left: .5rem;
+      margin-left: .4rem;
       border: none;
       padding: .4rem .75rem;
       border-radius: 6px;
@@ -131,26 +87,9 @@
       font-size: .85rem;
     }
 
-    .btn-finalizar {
-      background: #10b981;
-      color: #fff;
-    }
-
-    .btn-excluir {
-      background: #ef4444;
-      color: #fff;
-    }
-
-    .btn-editar {
-      background: #f59e0b;
-      color: #fff;
-    }
-
-    .filter-bar {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
+    .btn-finalizar { background:#10b981; color:#fff; }
+    .btn-editar { background:#3b82f6; color:#fff; }
+    .btn-excluir { background:#ef4444; color:#fff; }
   </style>
 </head>
 
@@ -168,81 +107,67 @@
 </header>
 
 <section class="dashboard-page">
-  <div class="dashboard-header">
-    <h1>📅 Agenda</h1>
-    <p>Gerencie seus atendimentos</p>
-  </div>
 
   <div class="cards-grid">
+
+    <!-- FORMULÁRIO -->
     <div class="dashboard-card">
-      <h3>Novo Atendimento</h3>
+      <h3 id="form-title">Novo Atendimento</h3>
 
       <form id="agenda-form">
-        <div class="form-group">
-          <label>Cliente</label>
-          <input type="text" id="cliente" required>
-        </div>
+        <input type="hidden" id="agenda_id">
 
-        <div class="form-group">
-          <label>Serviço</label>
-          <select id="servico" required></select>
-        </div>
+        <label>Cliente</label>
+        <input id="cliente" required>
 
-        <div class="form-group">
-          <label>Data</label>
-          <input type="date" id="data" required>
-        </div>
+        <label>Serviço</label>
+        <select id="servico" required></select>
 
-        <div class="form-group">
-          <label>Hora</label>
-          <input type="time" id="hora" required>
-        </div>
+        <label>Data</label>
+        <input type="date" id="data" required>
 
-        <button class="btn-primary" type="submit">Salvar</button>
+        <label>Hora</label>
+        <input type="time" id="hora" required>
+
+        <label>Lembrete (minutos antes)</label>
+        <select id="lembrete">
+          <option value="">Sem lembrete</option>
+          <option value="15">15 minutos</option>
+          <option value="30">30 minutos</option>
+          <option value="60">1 hora</option>
+        </select>
+
+        <br><br>
+        <button class="btn-editar" type="submit" id="btnSalvar">Salvar</button>
         <p id="msg"></p>
       </form>
     </div>
 
+    <!-- LISTA -->
     <div class="dashboard-card">
       <h3>Atendimentos</h3>
-
-      <div class="filter-bar">
-        <input type="text" id="filtro-cliente" placeholder="Buscar cliente">
-        <select id="filtro-servico"></select>
-      </div>
-
       <ul id="lista-agenda" class="agenda-list"></ul>
     </div>
+
   </div>
 </section>
 
-<!-- SDK SUPABASE (OBRIGATÓRIO) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- CLIENTE DO PROJETO (SEU supabase.js) -->
 <script src="./supabase.js"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
 
   const form = document.getElementById("agenda-form");
-  const lista = document.getElementById("lista-agenda");
-  const servicoSelect = document.getElementById("servico");
-  const filtroCliente = document.getElementById("filtro-cliente");
-  const filtroServico = document.getElementById("filtro-servico");
+  const agendaIdInput = document.getElementById("agenda_id");
   const msg = document.getElementById("msg");
 
   const { data: auth } = await supabase.auth.getUser();
-  const user = auth?.user;
-
-  if (!user) {
-    location.href = "login.html";
-    return;
-  }
+  const user = auth.user;
 
   document.getElementById("logoutBtn").onclick = async () => {
     await supabase.auth.signOut();
-    location.href = "login.html";
+    location.href = "index.html";
   };
 
   const { data: servicos } = await supabase
@@ -250,62 +175,51 @@ document.addEventListener("DOMContentLoaded", async () => {
     .select("*")
     .eq("user_id", user.id);
 
-  servicoSelect.innerHTML = `<option value="">Selecione</option>`;
-  filtroServico.innerHTML = `<option value="">Todos</option>`;
-
   servicos.forEach(s => {
-    servicoSelect.innerHTML += `<option value="${s.id}" data-valor="${s.valor}">${s.nome}</option>`;
-    filtroServico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
+    servico.innerHTML += `<option value="${s.id}" data-valor="${s.valor}">${s.nome}</option>`;
   });
 
   form.onsubmit = async e => {
     e.preventDefault();
 
-    const opt = servicoSelect.selectedOptions[0];
-
-    await supabase.from("agendamentos").insert([{
+    const payload = {
       usuario_id: user.id,
       cliente_nome: cliente.value,
-      servico_id: servicoSelect.value,
+      servico_id: servico.value,
       data_agendamento: data.value,
       hora: hora.value,
-      valor: opt.dataset.valor,
+      lembrete_minutos: lembrete.value || null,
       status: "pendente"
-    }]);
+    };
 
-    msg.textContent = "Atendimento salvo com sucesso!";
-    form.reset();
-    carregarAgenda();
-  };
+    let error;
+    if (agendaIdInput.value) {
+      ({ error } = await supabase
+        .from("agendamentos")
+        .update(payload)
+        .eq("id", agendaIdInput.value));
+    } else {
+      ({ error } = await supabase.from("agendamentos").insert([payload]));
+    }
 
-  window.finalizarAgendamento = async (id, valor) => {
-    await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id);
-    await supabase.from("financeiro").insert([{
-      agenda_id: id,
-      user_id: user.id,
-      tipo: "receita",
-      valor,
-      status: "confirmado"
-    }]);
-    carregarAgenda();
-  };
-
-  window.excluirAgendamento = async id => {
-    if (confirm("Excluir atendimento?")) {
-      await supabase.from("agendamentos").delete().eq("id", id);
+    if (!error) {
+      form.reset();
+      agendaIdInput.value = "";
       carregarAgenda();
     }
   };
 
-  window.alterarAgendamento = async id => {
-    const novoCliente = prompt("Novo nome do cliente:");
-    if (!novoCliente) return;
-    await supabase.from("agendamentos").update({ cliente_nome: novoCliente }).eq("id", id);
-    carregarAgenda();
+  window.editarAgendamento = a => {
+    agendaIdInput.value = a.id;
+    cliente.value = a.cliente_nome;
+    servico.value = a.servico_id;
+    data.value = a.data_agendamento;
+    hora.value = a.hora;
+    lembrete.value = a.lembrete_minutos || "";
   };
 
   async function carregarAgenda() {
-    lista.innerHTML = "";
+    lista-agenda.innerHTML = "";
 
     const { data } = await supabase
       .from("agendamentos")
@@ -313,29 +227,27 @@ document.addEventListener("DOMContentLoaded", async () => {
       .eq("usuario_id", user.id)
       .order("data_agendamento");
 
-    data
-      .filter(a => a.cliente_nome.toLowerCase().includes(filtroCliente.value.toLowerCase()))
-      .filter(a => filtroServico.value === "" || a.servico_id === filtroServico.value)
-      .forEach(a => {
-        lista.innerHTML += `
-          <li>
-            <div>
-              <strong>${a.cliente_nome}</strong><br>
-              ${a.data_agendamento} ${a.hora}
-            </div>
-            <div class="actions">
-              ${a.status === "pendente"
-                ? `<button class="btn-finalizar" onclick="finalizarAgendamento('${a.id}', ${a.valor})">Finalizar</button>`
-                : ""}
-              <button class="btn-editar" onclick="alterarAgendamento('${a.id}')">Editar</button>
-              <button class="btn-excluir" onclick="excluirAgendamento('${a.id}')">Excluir</button>
-            </div>
-          </li>`;
-      });
+    data.forEach(a => {
+      lista-agenda.innerHTML += `
+        <li>
+          <div>
+            <strong>${a.cliente_nome}</strong><br>
+            ${a.data_agendamento} ${a.hora}
+          </div>
+          <div class="actions">
+            <button class="btn-editar" onclick='editarAgendamento(${JSON.stringify(a)})'>Alterar</button>
+            <button class="btn-excluir" onclick="excluirAgendamento('${a.id}')">Excluir</button>
+          </div>
+        </li>`;
+    });
   }
 
-  filtroCliente.oninput = carregarAgenda;
-  filtroServico.onchange = carregarAgenda;
+  window.excluirAgendamento = async id => {
+    if (confirm("Excluir atendimento?")) {
+      await supabase.from("agendamentos").delete().eq("id", id);
+      carregarAgenda();
+    }
+  };
 
   carregarAgenda();
 });

@@ -182,19 +182,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function carregarAgenda() {
   lista.innerHTML = "";
 
-  // Seleção simples, sem relação aninhada
+  // Seleção usando os nomes corretos
   const { data, error } = await supabase
-    .from("agenda")
-    .select("id, cliente, servico_id, data, hora")
-    .eq("user_id", user.id)
-    .order("data");
+    .from("agendamentos")          // atenção: tabela correta
+    .select("id, cliente_nome, servico_id, data_agendamento, hora")
+    .eq("usuario_id", user.id)
+    .order("data_agendamento");
 
   if (error) {
     console.error("Erro ao listar agenda:", error);
     return;
   }
 
-  // Para exibir o nome do serviço, vamos buscar localmente
+  // Buscar todos os serviços do usuário para mapear nome
   const { data: servicos, error: servicosError } = await supabase
     .from("servicos")
     .select("id, nome")
@@ -206,14 +206,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   data.forEach(a => {
     const li = document.createElement("li");
     li.innerHTML = `
-      <strong>${a.cliente}</strong><br>
-      ${a.data} às ${a.hora}<br>
+      <strong>${a.cliente_nome}</strong><br>
+      ${a.data_agendamento} às ${a.hora}<br>
       Serviço: ${servicoMap[a.servico_id] || "-"}
     `;
     lista.appendChild(li);
   });
 }
-
   carregarAgenda();
 
 });

@@ -165,8 +165,10 @@
   <div class="cards-grid">
 
     <div class="dashboard-card">
-      <h3>Novo Atendimento</h3>
+      <h3 id="form-title">Novo Atendimento</h3>
       <form id="agenda-form">
+        <input type="hidden" id="edit-id">
+
         <div class="form-group">
           <label>Cliente</label>
           <input type="text" id="cliente" required>
@@ -196,7 +198,7 @@
           </select>
         </div>
 
-        <button class="btn-primary" type="submit">Salvar</button>
+        <button class="btn-primary" type="submit" id="btn-salvar">Salvar</button>
         <p id="msg"></p>
       </form>
     </div>
@@ -216,6 +218,18 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
   const lista = document.getElementById("lista");
+  const form = document.getElementById("agenda-form");
+
+  const editIdInput = document.getElementById("edit-id");
+  const formTitle = document.getElementById("form-title");
+  const btnSalvar = document.getElementById("btn-salvar");
+
+  const cliente = document.getElementById("cliente");
+  const servico = document.getElementById("servico");
+  const dataInput = document.getElementById("data");
+  const hora = document.getElementById("hora");
+  const lembrete = document.getElementById("lembrete");
+  const msg = document.getElementById("msg");
 
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) {
@@ -228,6 +242,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     await supabase.auth.signOut();
     location.href = "index.html";
   };
+
+  // carregar serviços
+  const { data: servicos } = await supabase
+    .from("servicos")
+    .select("*")
+    .eq("user_id", user.id);
+
+  servico.innerHTML = `<option value="">Selecione</option>`;
+  servicos.forEach(s => {
+    servico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
+  });
 
   function formatarDataHora(dataISO, hora) {
     const d = new Date(dataISO);
@@ -295,9 +320,47 @@ document.addEventListener("DOMContentLoaded", async () => {
         alert("Agendamento finalizado não pode ser editado.");
         return;
       }
-      alert("Ação de editar disparada (pronto para próximo passo).");
+
+      const { data } = await supabase
+        .from("agendamentos")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      editIdInput.value = data.id;
+      cliente.value = data.cliente_nome;
+      servico.value = data.servico_id;
+      dataInput.value = data.data_agendamento.split("T")[0];
+      hora.value = data.hora;
+      lembrete.value = data.lembrete_horas || 0;
+
+      formTitle.textContent = "Editar Atendimento";
+      btnSalvar.textContent = "Atualizar";
     }
   });
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+
+    if (editIdInput.value) {
+      await supabase.from("agendamentos")
+        .update({
+          cliente_nome: cliente.value,
+          servico_id: servico.value,
+          data_agendamento: dataInput.value,
+          hora: hora.value,
+          lembrete_horas: lembrete.value
+        })
+        .eq("id", editIdInput.value);
+
+      editIdInput.value = "";
+      formTitle.textContent = "Novo Atendimento";
+      btnSalvar.textContent = "Salvar";
+    }
+
+    form.reset();
+    carregarAgenda();
+  };
 
   carregarAgenda();
 });

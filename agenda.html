@@ -23,12 +23,11 @@
     }
 
     header .container {
-      width: 100%;
+      max-width: 100%;
       padding: 0 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-sizing: border-box;
     }
 
     header nav a {
@@ -57,11 +56,6 @@
       padding: 0 2rem;
     }
 
-    .dashboard-header p {
-      color: #6b7280;
-      margin-bottom: 2rem;
-    }
-
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -77,6 +71,12 @@
 
     .form-group {
       margin-bottom: 1rem;
+    }
+
+    label {
+      font-weight: 500;
+      display: block;
+      margin-bottom: .25rem;
     }
 
     input, select {
@@ -106,7 +106,7 @@
     }
 
     .actions button {
-      margin-left: .4rem;
+      margin-left: .5rem;
       border: none;
       padding: .4rem .75rem;
       border-radius: 6px;
@@ -115,23 +115,7 @@
     }
 
     .btn-finalizar { background: #10b981; color: #fff; }
-    .btn-alterar { background: #3b82f6; color: #fff; }
     .btn-excluir { background: #ef4444; color: #fff; }
-
-    .status {
-      font-size: .75rem;
-      font-weight: bold;
-      margin-top: .25rem;
-    }
-
-    .status.pendente { color: #d97706; }
-    .status.finalizado { color: #059669; }
-
-    .filter-bar {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
   </style>
 </head>
 
@@ -149,20 +133,17 @@
 </header>
 
 <section class="dashboard-page">
-  <div class="dashboard-header">
-    <h1>📅 Agenda</h1>
-    <p>Gerencie seus atendimentos</p>
-  </div>
+  <h1>📅 Agenda</h1>
+  <p>Gerencie seus atendimentos</p>
 
   <div class="cards-grid">
-
     <div class="dashboard-card">
-      <h3 id="form-title">Novo Atendimento</h3>
+      <h3>Novo Atendimento</h3>
 
       <form id="agenda-form">
         <div class="form-group">
           <label>Cliente</label>
-          <input type="text" id="cliente" required>
+          <input id="cliente" required>
         </div>
 
         <div class="form-group">
@@ -180,22 +161,24 @@
           <input type="time" id="hora" required>
         </div>
 
-        <button class="btn-primary" type="submit" id="btnSalvar">Salvar</button>
+        <div class="form-group">
+          <label>Lembrete</label>
+          <select id="lembrete">
+            <option value="0">Sem lembrete</option>
+            <option value="24">24 horas antes</option>
+            <option value="2">2 horas antes</option>
+          </select>
+        </div>
+
+        <button class="btn-primary">Salvar</button>
         <p id="msg"></p>
       </form>
     </div>
 
     <div class="dashboard-card">
       <h3>Atendimentos</h3>
-
-      <div class="filter-bar">
-        <input type="text" id="filtro-cliente" placeholder="Buscar cliente">
-        <select id="filtro-servico"></select>
-      </div>
-
-      <ul id="lista-agenda"></ul>
+      <ul id="lista-agenda" class="agenda-list"></ul>
     </div>
-
   </div>
 </section>
 
@@ -205,16 +188,9 @@
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
 
-  let editandoId = null;
-
   const form = document.getElementById("agenda-form");
   const lista = document.getElementById("lista-agenda");
-  const servicoSelect = document.getElementById("servico");
-  const filtroCliente = document.getElementById("filtro-cliente");
-  const filtroServico = document.getElementById("filtro-servico");
   const msg = document.getElementById("msg");
-  const formTitle = document.getElementById("form-title");
-  const btnSalvar = document.getElementById("btnSalvar");
 
   const { data: auth } = await supabase.auth.getUser();
   const user = auth.user;
@@ -229,115 +205,66 @@ document.addEventListener("DOMContentLoaded", async () => {
     .select("*")
     .eq("user_id", user.id);
 
-  servicoSelect.innerHTML = `<option value="">Selecione</option>`;
-  filtroServico.innerHTML = `<option value="">Todos</option>`;
-
   servicos.forEach(s => {
-    servicoSelect.innerHTML += `<option value="${s.id}" data-valor="${s.valor}">${s.nome}</option>`;
-    filtroServico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
+    servico.innerHTML += `<option value="${s.id}" data-valor="${s.valor}">${s.nome}</option>`;
   });
 
   form.onsubmit = async e => {
     e.preventDefault();
 
-    const opt = servicoSelect.selectedOptions[0];
-    const payload = {
-      cliente_nome: cliente.value,
-      servico_id: servicoSelect.value,
-      data_agendamento: data.value,
-      hora: hora.value,
-      valor: opt.dataset.valor
-    };
+    const lembreteHoras = Number(lembrete.value);
+    const dataHora = new Date(`${data.value}T${hora.value}`);
 
-    if (editandoId) {
-      await supabase.from("agendamentos").update(payload).eq("id", editandoId);
-      editandoId = null;
-      formTitle.textContent = "Novo Atendimento";
-      btnSalvar.textContent = "Salvar";
-    } else {
-      await supabase.from("agendamentos").insert([{
-        ...payload,
+    const { data: agendamento } = await supabase
+      .from("agendamentos")
+      .insert([{
         usuario_id: user.id,
+        cliente_nome: cliente.value,
+        servico_id: servico.value,
+        data_agendamento: data.value,
+        hora: hora.value,
+        valor: servico.selectedOptions[0].dataset.valor,
         status: "pendente"
+      }])
+      .select()
+      .single();
+
+    if (lembreteHoras > 0) {
+      const enviarEm = new Date(dataHora);
+      enviarEm.setHours(enviarEm.getHours() - lembreteHoras);
+
+      await supabase.from("notificacoes").insert([{
+        user_id: user.id,
+        agenda_id: agendamento.id,
+        tipo: "email",
+        enviar_em: enviarEm.toISOString()
       }]);
     }
 
+    msg.textContent = "Atendimento salvo com lembrete configurado!";
     form.reset();
     carregarAgenda();
   };
 
-  async function alterarAgendamento(a) {
-    if (a.status === "finalizado") {
-      alert("Agendamento finalizado não pode ser alterado.");
-      return;
-    }
-
-    editandoId = a.id;
-    cliente.value = a.cliente_nome;
-    servicoSelect.value = a.servico_id;
-    data.value = a.data_agendamento;
-    hora.value = a.hora;
-
-    formTitle.textContent = "Editar Atendimento";
-    btnSalvar.textContent = "Atualizar";
-  }
-
-  async function finalizarAgendamento(id, valor) {
-    await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id);
-    await supabase.from("financeiro").insert([{
-      agenda_id: id,
-      user_id: user.id,
-      tipo: "receita",
-      valor,
-      status: "confirmado"
-    }]);
-    carregarAgenda();
-  }
-
-  async function excluirAgendamento(id) {
-    if (confirm("Excluir atendimento?")) {
-      await supabase.from("agendamentos").delete().eq("id", id);
-      carregarAgenda();
-    }
-  }
-
   async function carregarAgenda() {
     lista.innerHTML = "";
-
     const { data } = await supabase
       .from("agendamentos")
       .select("*")
       .eq("usuario_id", user.id)
       .order("data_agendamento");
 
-    data
-      .filter(a => a.cliente_nome.toLowerCase().includes(filtroCliente.value.toLowerCase()))
-      .filter(a => filtroServico.value === "" || a.servico_id === filtroServico.value)
-      .forEach(a => {
-        lista.innerHTML += `
-          <li>
-            <div>
-              <strong>${a.cliente_nome}</strong><br>
-              ${a.data_agendamento} ${a.hora}
-              <div class="status ${a.status}">${a.status}</div>
-            </div>
-            <div class="actions">
-              ${a.status === "pendente"
-                ? `<button class="btn-finalizar" onclick="finalizarAgendamento('${a.id}', ${a.valor})">Finalizar</button>
-                   <button class="btn-alterar" onclick='alterarAgendamento(${JSON.stringify(a)})'>Alterar</button>`
-                : ""}
-              <button class="btn-excluir" onclick="excluirAgendamento('${a.id}')">Excluir</button>
-            </div>
-          </li>`;
-      });
+    data.forEach(a => {
+      lista.innerHTML += `
+        <li>
+          <div>
+            <strong>${a.cliente_nome}</strong><br>
+            ${a.data_agendamento} ${a.hora}
+          </div>
+        </li>
+      `;
+    });
   }
-
-  filtroCliente.oninput = carregarAgenda;
-  filtroServico.onchange = carregarAgenda;
-
-  window.alterarAgendamento = alterarAgendamento;
-  window.finalizarAgendamento = finalizarAgendamento;
-  window.excluirAgendamento = excluirAgendamento;
 
   carregarAgenda();
 });

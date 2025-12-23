@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>ProServ | Financeiro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <img src="./images/logo.png" alt="ProServ Logo">
+    <nav>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="agenda.html">Agenda</a>
+      <a href="financeiro.html" class="active">Financeiro</a>
+      <button id="logoutBtn">Sair</button>
+    </nav>
+  </div>
+</header>
+
+<section class="dashboard-page">
+  <div class="container">
+
+    <div class="dashboard-header">
+      <h1>💰 Financeiro</h1>
+      <p>Controle de receitas e atendimentos finalizados</p>
+    </div>
+
+    <!-- RESUMO -->
+    <div class="features">
+      <div class="card">
+        <h3>Hoje</h3>
+        <p id="hoje">R$ 0,00</p>
+      </div>
+      <div class="card">
+        <h3>Mês</h3>
+        <p id="mes">R$ 0,00</p>
+      </div>
+      <div class="card">
+        <h3>Total</h3>
+        <p id="total">R$ 0,00</p>
+      </div>
+    </div>
+
+    <!-- LISTAGEM -->
+    <div class="dashboard-card">
+      <h3>Lançamentos</h3>
+      <table class="financeiro-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Tipo</th>
+            <th>Valor</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="lista-financeiro"></tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<footer style="background:#111827;color:#9ca3af;text-align:center;padding:2rem;">
+  &copy; 2025 ProServ
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+
+  const lista = document.getElementById("lista-financeiro");
+  const hojeEl = document.getElementById("hoje");
+  const mesEl = document.getElementById("mes");
+  const totalEl = document.getElementById("total");
+
+  // LOGOUT
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    window.location.href = "index.html";
+  });
+
+  const { data: authData } = await supabase.auth.getUser();
+  const user = authData.user;
+
+  const { data, error } = await supabase
+    .from("financeiro")
+    .select("valor, status, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao carregar financeiro:", error);
+    return;
+  }
+
+  let total = 0;
+  let hoje = 0;
+  let mes = 0;
+
+  const hojeData = new Date().toISOString().split("T")[0];
+  const mesAtual = new Date().getMonth();
+
+  data.forEach(item => {
+    const valor = Number(item.valor || 0);
+    const dataItem = new Date(item.created_at);
+    const dataISO = dataItem.toISOString().split("T")[0];
+
+    total += valor;
+
+    if (dataISO === hojeData) hoje += valor;
+    if (dataItem.getMonth() === mesAtual) mes += valor;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${dataISO}</td>
+      <td>Receita</td>
+      <td>R$ ${valor.toFixed(2)}</td>
+      <td>${item.status}</td>
+    `;
+    lista.appendChild(tr);
+  });
+
+  hojeEl.textContent = `R$ ${hoje.toFixed(2)}`;
+  mesEl.textContent = `R$ ${mes.toFixed(2)}`;
+  totalEl.textContent = `R$ ${total.toFixed(2)}`;
+});
+</script>
+
+</body>
+</html>

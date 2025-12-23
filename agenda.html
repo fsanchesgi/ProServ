@@ -132,20 +132,9 @@
       font-size: .85rem;
     }
 
-    .btn-finalizar {
-      background: #10b981;
-      color: #fff;
-    }
-
-    .btn-excluir {
-      background: #ef4444;
-      color: #fff;
-    }
-
-    .btn-alterar {
-      background: #f59e0b;
-      color: #fff;
-    }
+    .btn-finalizar { background: #10b981; color: #fff; }
+    .btn-excluir { background: #ef4444; color: #fff; }
+    .btn-alterar { background: #f59e0b; color: #fff; }
 
     .filter-bar {
       display: flex;
@@ -197,6 +186,12 @@
         <div class="form-group">
           <label>Hora</label>
           <input type="time" id="hora" required>
+        </div>
+
+        <!-- 🔔 LEMBRETE -->
+        <div class="form-group">
+          <label>Lembrete (opcional)</label>
+          <input type="datetime-local" id="lembrete">
         </div>
 
         <button class="btn-primary" type="submit">Salvar</button>
@@ -257,27 +252,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     const editId = form.dataset.editando;
     const opt = servicoSelect.selectedOptions[0];
 
-    if (editId) {
-      await supabase
-        .from("agendamentos")
-        .update({
-          cliente_nome: cliente.value,
-          servico_id: servicoSelect.value,
-          data_agendamento: data.value,
-          hora: hora.value
-        })
-        .eq("id", editId);
+    const payload = {
+      cliente_nome: cliente.value,
+      servico_id: servicoSelect.value,
+      data_agendamento: data.value,
+      hora: hora.value,
+      lembrete_em: lembrete.value || null
+    };
 
+    if (editId) {
+      await supabase.from("agendamentos").update(payload).eq("id", editId);
       delete form.dataset.editando;
     } else {
       await supabase.from("agendamentos").insert([{
         usuario_id: user.id,
-        cliente_nome: cliente.value,
-        servico_id: servicoSelect.value,
-        data_agendamento: data.value,
-        hora: hora.value,
+        ...payload,
         valor: opt.dataset.valor,
-        status: "pendente"
+        status: "pendente",
+        lembrete_enviado: false
       }]);
     }
 
@@ -302,6 +294,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     servicoSelect.value = data.servico_id;
     data.value = data.data_agendamento;
     hora.value = data.hora;
+    lembrete.value = data.lembrete_em ? data.lembrete_em.substring(0,16) : "";
 
     form.dataset.editando = id;
   };
@@ -347,6 +340,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <div>
               <strong>${a.cliente_nome}</strong><br>
               ${a.data_agendamento} ${a.hora}
+              ${a.lembrete_em ? `<br>🔔 Lembrete: ${new Date(a.lembrete_em).toLocaleString()}` : ""}
             </div>
             <div class="actions">
               <button class="btn-alterar" onclick="alterarAgendamento('${a.id}')">Alterar</button>

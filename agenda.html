@@ -242,10 +242,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function carregarServicos() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("servicos")
       .select("id, nome")
       .order("nome");
+
+    if (error) {
+      console.error("Erro ao carregar serviços:", error);
+      return;
+    }
 
     servicoSelect.innerHTML = "<option value=''>Selecione</option>";
     data.forEach(s => {
@@ -256,7 +261,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   form.onsubmit = async (e) => {
     e.preventDefault();
 
-    await supabase.from("agendamentos").insert([{
+    const { error } = await supabase.from("agendamentos").insert([{
       usuario_id: user.id,
       cliente_nome: cliente.value,
       servico_id: servico.value,
@@ -266,6 +271,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       status: "pendente"
     }]);
 
+    if (error) {
+      console.error("Erro ao salvar agendamento:", error);
+      return;
+    }
+
     form.reset();
     carregarAgenda();
   };
@@ -273,11 +283,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function carregarAgenda() {
     lista.innerHTML = "";
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("agendamentos")
       .select("*")
       .eq("usuario_id", user.id)
       .order("data_agendamento");
+
+    if (error) {
+      console.error("Erro ao carregar agenda:", error);
+      return;
+    }
 
     data.forEach(a => {
       lista.innerHTML += `

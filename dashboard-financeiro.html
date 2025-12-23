@@ -2,87 +2,42 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>ProServ | Financeiro</title>
+  <title>ProServ | Agenda</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="./style.css">
   <style>
-    /* Header mais compacto */
-    header .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem 2rem;
-      background: #111827;
-      color: #fff;
-    }
-    header nav a {
-      margin-right: 1rem;
-      font-size: 0.9rem;
-      color: #fff;
-      text-decoration: none;
-    }
-    header nav a.active {
-      text-decoration: underline;
-    }
-    header nav button {
-      padding: 0.25rem 0.75rem;
-      font-size: 0.9rem;
-      cursor: pointer;
-    }
-
-    /* Cards financeiros */
-    .cards {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-    }
-    .card {
-      background: #1f2937;
-      color: #fff;
-      padding: 1rem 1.5rem;
-      border-radius: 0.5rem;
-      flex: 1 1 200px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    .card h3 {
-      margin-bottom: 0.5rem;
-      font-size: 1.1rem;
-    }
-    .card p {
-      font-size: 1.5rem;
-      font-weight: bold;
-    }
-
-    /* Lista agendamentos */
-    .agenda-list li {
-      background: #f3f4f6;
-      margin-bottom: 0.5rem;
-      padding: 0.75rem 1rem;
-      border-radius: 0.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .agenda-list button {
-      padding: 0.25rem 0.5rem;
-      background: #ef4444;
-      color: #fff;
-      border: none;
-      border-radius: 0.25rem;
-      cursor: pointer;
-    }
+    body { margin:0; font-family: Arial, sans-serif; background:#f3f4f6; }
+    header { background:#111827; color:#fff; width:100%; }
+    header .container { display:flex; justify-content:space-between; align-items:center; padding:0 2rem; height:60px; }
+    header img { height:40px; }
+    header nav a { color:#fff; margin-right:1rem; text-decoration:none; font-weight:500; }
+    header nav a.active { text-decoration:underline; }
+    header nav button { padding:0.4rem 0.8rem; background:#2563eb; border:none; color:#fff; border-radius:4px; cursor:pointer; }
+    .dashboard-page .container { max-width:1200px; margin:2rem auto; padding:0 1rem; }
+    .dashboard-header { margin-bottom:1.5rem; }
+    .dashboard-header h1 { margin:0; font-size:2rem; }
+    .dashboard-header p { margin:0.2rem 0 0; color:#6b7280; }
+    .dashboard-card { background:#fff; padding:1.5rem; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); margin-bottom:1.5rem; }
+    .form-group { margin-bottom:1rem; }
+    label { display:block; font-weight:600; margin-bottom:0.3rem; }
+    input, select { width:100%; padding:0.5rem; border:1px solid #d1d5db; border-radius:4px; }
+    button.plan-button { padding:0.5rem 1rem; background:#2563eb; color:#fff; border:none; border-radius:4px; cursor:pointer; }
+    #msg { margin-top:0.5rem; font-weight:500; }
+    .agenda-list { list-style:none; padding:0; margin:0; }
+    .agenda-list li { display:flex; justify-content:space-between; align-items:center; background:#f9fafb; padding:0.8rem 1rem; margin-bottom:0.5rem; border-radius:6px; }
+    .agenda-list li div { display:flex; flex-direction:column; }
+    .agenda-list button { padding:0.3rem 0.6rem; background:#10b981; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:0.9rem; }
   </style>
 </head>
 <body>
 
 <header>
   <div class="container">
-    <img src="./images/logo.png" alt="ProServ Logo" style="height:40px;">
+    <img src="./images/logo.png" alt="ProServ Logo">
     <nav>
       <a href="dashboard.html">Dashboard</a>
       <a href="agenda.html" class="active">Agenda</a>
-      <a href="financeiro.html" class="active">Financeiro</a>
+      <a href="financeiro.html">Financeiro</a>
       <button id="logoutBtn">Sair</button>
     </nav>
   </div>
@@ -92,27 +47,38 @@
   <div class="container">
 
     <div class="dashboard-header">
-      <h1>💰 Financeiro</h1>
-      <p>Resumo financeiro baseado em agendamentos e despesas</p>
-    </div>
-
-    <div class="cards">
-      <div class="card">
-        <h3>Total Receitas</h3>
-        <p id="totalReceitas">R$ 0,00</p>
-      </div>
-      <div class="card">
-        <h3>Total Despesas</h3>
-        <p id="totalDespesas">R$ 0,00</p>
-      </div>
-      <div class="card">
-        <h3>Saldo</h3>
-        <p id="saldo">R$ 0,00</p>
-      </div>
+      <h1>📅 Agenda</h1>
+      <p>Gerencie seus atendimentos de forma organizada</p>
     </div>
 
     <div class="dashboard-card">
-      <h3>Agendamentos</h3>
+      <h3>Novo Atendimento</h3>
+      <form id="agenda-form">
+        <div class="form-group">
+          <label>Cliente</label>
+          <input type="text" id="cliente" required>
+        </div>
+        <div class="form-group">
+          <label>Serviço</label>
+          <select id="servico" required>
+            <option value="">Selecione o serviço</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" id="data" required>
+        </div>
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="time" id="hora" required>
+        </div>
+        <button class="plan-button" type="submit">Salvar</button>
+      </form>
+      <p id="msg"></p>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>Atendimentos Agendados</h3>
       <ul id="lista-agenda" class="agenda-list"></ul>
     </div>
 
@@ -128,52 +94,102 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
-
-  const logoutBtn = document.getElementById("logoutBtn");
+  const form = document.getElementById("agenda-form");
+  const msg = document.getElementById("msg");
   const lista = document.getElementById("lista-agenda");
-  const totalReceitas = document.getElementById("totalReceitas");
-  const totalDespesas = document.getElementById("totalDespesas");
-  const saldo = document.getElementById("saldo");
+  const servicoSelect = document.getElementById("servico");
 
-  logoutBtn.addEventListener("click", async () => {
+  // LOGOUT
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
     await supabase.auth.signOut();
     window.location.href = "index.html";
   });
 
+  // USUÁRIO LOGADO
   const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) return;
+  if (authError || !authData.user) return console.error("Usuário não autenticado");
   const user = authData.user;
 
-  // CARREGAR FINANCEIRO
-  async function carregarFinanceiro() {
-    // Receitas: somar valores dos agendamentos agendados ou finalizados
-    const { data: agendamentos } = await supabase
-      .from("agendamentos")
-      .select("id, valor, status")
-      .eq("usuario_id", user.id)
-      .in("status", ["agendado", "finalizado"]);
-
-    let totalR = 0;
-    agendamentos?.forEach(a => totalR += a.valor || 0);
-
-    // Despesas: tabela financeiro
-    const { data: despesas } = await supabase
-      .from("financeiro")
-      .select("valor")
+  // CARREGAR SERVIÇOS
+  try {
+    const { data: servicos, error: servicosError } = await supabase
+      .from("servicos")
+      .select("id, nome, duracao_minutos, valor")
       .eq("user_id", user.id)
-      .eq("tipo", "despesa");
+      .order("nome");
+    if (servicosError) throw servicosError;
 
-    let totalD = 0;
-    despesas?.forEach(d => totalD += d.valor || 0);
+    servicoSelect.innerHTML = `<option value="">Selecione o serviço</option>`;
+    servicos.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.dataset.duracao = s.duracao_minutos;
+      opt.dataset.valor = s.valor;
+      opt.textContent = `${s.nome} (${s.duracao_minutos} min) - R$ ${s.valor}`;
+      servicoSelect.appendChild(opt);
+    });
 
-    totalReceitas.textContent = `R$ ${totalR.toFixed(2)}`;
-    totalDespesas.textContent = `R$ ${totalD.toFixed(2)}`;
-    saldo.textContent = `R$ ${(totalR - totalD).toFixed(2)}`;
-
-    carregarAgenda();
+  } catch (err) {
+    console.error("Erro ao carregar serviços:", err);
+    servicoSelect.innerHTML = `<option value="">Erro ao carregar serviços</option>`;
   }
 
-  // LISTAR AGENDA
+  // SALVAR AGENDA
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.textContent = "";
+
+    const cliente_nome = document.getElementById("cliente").value.trim();
+    const servico_id = servicoSelect.value;
+    const data_agendamento = document.getElementById("data").value;
+    const hora = document.getElementById("hora").value;
+
+    if (!cliente_nome || !servico_id || !data_agendamento || !hora) {
+      msg.textContent = "Preencha todos os campos.";
+      msg.style.color = "red";
+      return;
+    }
+
+    const option = servicoSelect.selectedOptions[0];
+    const duracao_minutos = Number(option.dataset.duracao || 0);
+    const valor = Number(option.dataset.valor || 0);
+
+    try {
+      const { data: novoAgendamento, error } = await supabase.from("agendamentos").insert([{
+        usuario_id: user.id,
+        cliente_nome,
+        servico_id,
+        data_agendamento,
+        hora,
+        duracao_minutos,
+        valor,
+        status: "agendado"
+      }]).select();
+
+      if (error) throw error;
+
+      // Atualiza financeiro
+      await supabase.from("financeiro").insert([{
+        agenda_id: novoAgendamento[0].id,
+        user_id: user.id,
+        tipo: "receita",
+        valor: valor || 0,
+        status: "pendente"
+      }]);
+
+      msg.textContent = "Atendimento salvo com sucesso!";
+      msg.style.color = "green";
+      form.reset();
+      carregarAgenda();
+
+    } catch (err) {
+      console.error("Erro ao salvar agenda:", err);
+      msg.textContent = "Erro ao salvar atendimento.";
+      msg.style.color = "red";
+    }
+  });
+
+  // LISTAR AGENDA COM BOTÃO FINALIZAR
   async function carregarAgenda() {
     lista.innerHTML = "";
 
@@ -182,37 +198,47 @@ document.addEventListener("DOMContentLoaded", async () => {
       .select("id, cliente_nome, servico_id, data_agendamento, hora, status, valor")
       .eq("usuario_id", user.id)
       .order("data_agendamento");
+    if (error) return console.error("Erro ao listar agenda:", error);
 
-    if (error) return;
+    const { data: servicos } = await supabase
+      .from("servicos")
+      .select("id, nome")
+      .eq("user_id", user.id);
 
-    data?.forEach(a => {
+    const servicoMap = {};
+    servicos?.forEach(s => servicoMap[s.id] = s.nome);
+
+    data.forEach(a => {
       const li = document.createElement("li");
       li.innerHTML = `
         <div>
           <strong>${a.cliente_nome}</strong> - ${a.data_agendamento} às ${a.hora} - R$ ${a.valor.toFixed(2)}
+          <br>Serviço: ${servicoMap[a.servico_id] || "-"}
           <br>Status: ${a.status}
         </div>
         <div>
-          <button onclick="finalizarAgendamento('${a.id}')">Finalizar</button>
+          ${a.status === "agendado" ? `<button class="finalizar-btn" data-id="${a.id}">Finalizar</button>` : ""}
         </div>
       `;
       lista.appendChild(li);
     });
+
+    // Botão Finalizar
+    document.querySelectorAll(".finalizar-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        const { error } = await supabase
+          .from("agendamentos")
+          .update({ status: "finalizado" })
+          .eq("id", id);
+        if (error) return console.error("Erro ao finalizar:", error);
+        carregarAgenda();
+      });
+    });
   }
 
-  // FINALIZAR AGENDAMENTO
-  window.finalizarAgendamento = async (id) => {
-    const { error } = await supabase
-      .from("agendamentos")
-      .update({ status: "finalizado" })
-      .eq("id", id);
-    if (error) return console.error("Erro ao finalizar:", error);
-    carregarFinanceiro();
-  }
-
-  carregarFinanceiro();
+  carregarAgenda();
 });
 </script>
-
 </body>
 </html>

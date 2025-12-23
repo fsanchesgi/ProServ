@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     servicoSelect.innerHTML = `<option value="">Erro ao carregar serviços</option>`;
   }
 
-  // SALVAR AGENDA COM VERIFICAÇÃO DE DUPLICIDADE
+  // SALVAR AGENDA COM UPSERT
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     msg.textContent = "";
@@ -137,43 +137,24 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // Verificar duplicidade de agendamento
-    const { data: existe, error: checkError } = await supabase
-      .from("agendamentos")
-      .select("id")
-      .eq("usuario_id", user.id)
-      .eq("data_agendamento", data_agendamento)
-      .eq("hora", hora)
-      .limit(1);
-
-    if (checkError) {
-      console.error("Erro ao checar duplicidade:", checkError);
-      msg.textContent = "Erro ao verificar disponibilidade.";
-      msg.style.color = "red";
-      return;
-    }
-
-    if (existe.length > 0) {
-      msg.textContent = "Já existe um atendimento para este horário.";
-      msg.style.color = "red";
-      return;
-    }
-
     const option = servicoSelect.selectedOptions[0];
     const duracao_minutos = Number(option.dataset.duracao || 0);
     const valor = Number(option.dataset.valor || 0);
 
     try {
-      const { error } = await supabase.from("agendamentos").insert([{
-        usuario_id: user.id,
-        cliente_nome,
-        servico_id,
-        data_agendamento,
-        hora,
-        duracao_minutos: duracao_minutos || 0,
-        valor: valor || 0,
-        status: "agendado"
-      }]);
+      // Upsert usando onConflict para prevenir 409
+      const { error } = await supabase
+        .from("agendamentos")
+        .upsert([{
+          usuario_id: user.id,
+          cliente_nome,
+          servico_id,
+          data_agendamento,
+          hora,
+          duracao_minutos: duracao_minutos || 0,
+          valor: valor || 0,
+          status: "agendado"
+        }], { onConflict: ["usuario_id", "data_agendamento", "hora"] });
 
       if (error) throw error;
 

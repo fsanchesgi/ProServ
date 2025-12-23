@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>ProServ | Agenda</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <link rel="icon" href="./images/favicon.png">
   <link rel="stylesheet" href="./style.css">
 </head>
@@ -31,7 +30,6 @@
 
     <div class="dashboard-card">
       <h3>Novo Atendimento</h3>
-
       <form id="agenda-form">
         <div class="form-group">
           <label>Cliente</label>
@@ -85,17 +83,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const lista = document.getElementById("lista-agenda");
   const servicoSelect = document.getElementById("servico");
 
-  /* =========================
-     LOGOUT
-  ========================= */
+  // LOGOUT
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     await supabase.auth.signOut();
     window.location.href = "index.html";
   });
 
-  /* =========================
-     USUÁRIO LOGADO
-  ========================= */
+  // USUÁRIO LOGADO
   const { data: authData, error: authError } = await supabase.auth.getUser();
   if (authError || !authData.user) {
     console.error("Usuário não autenticado");
@@ -103,14 +97,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   const user = authData.user;
 
-  /* =========================
-     CARREGAR SERVIÇOS (dropdown)
-  ========================= */
+  // CARREGAR SERVIÇOS
   try {
     const { data: servicos, error: servicosError } = await supabase
       .from("servicos")
       .select("id, nome, duracao_minutos, valor")
       .eq("user_id", user.id)
+      .eq("ativo", true)
       .order("nome");
 
     if (servicosError) throw servicosError;
@@ -121,9 +114,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     servicos.forEach(s => {
       const opt = document.createElement("option");
       opt.value = s.id;
-      opt.textContent = `${s.nome} (${s.duracao_minutos} min) - R$ ${s.valor}`;
       opt.dataset.duracao = s.duracao_minutos;
       opt.dataset.valor = s.valor;
+      opt.textContent = `${s.nome} (${s.duracao_minutos} min) - R$ ${s.valor}`;
       servicoSelect.appendChild(opt);
     });
 
@@ -139,9 +132,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     servicoSelect.innerHTML = `<option value="">Erro ao carregar serviços</option>`;
   }
 
-  /* =========================
-     SALVAR AGENDA (upsert para evitar 409)
-  ========================= */
+  // SALVAR AGENDA
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     msg.textContent = "";
@@ -157,23 +148,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    // Valor e duração do serviço selecionado
     const option = servicoSelect.selectedOptions[0];
     const duracao_minutos = Number(option.dataset.duracao || 0);
     const valor = Number(option.dataset.valor || 0);
 
-    // ✅ Upsert para evitar duplicidade 409
-    const { error } = await supabase
-  .from("agendamentos")
-  .upsert({
-    usuario_id: user.id,
-    cliente_nome,
-    servico_id,
-    data_agendamento,
-    hora,
-    duracao_minutos,
-    valor,
-    status: "agendado"
-  }, { onConflict: 'agendamentos_usuario_data_hora_unique' });
+    const { error } = await supabase.from("agendamentos").upsert({
+      usuario_id: user.id,
+      cliente_nome,
+      servico_id,
+      data_agendamento,
+      hora,
+      duracao_minutos,
+      valor,
+      status: "agendado"
+    }, { onConflict: ['usuario_id', 'data_agendamento', 'hora'] });
 
     if (error) {
       console.error("Erro ao salvar agenda:", error);
@@ -188,9 +177,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     carregarAgenda();
   });
 
-  /* =========================
-     LISTAR AGENDA
-  ========================= */
+  // LISTAR AGENDA
   async function carregarAgenda() {
     lista.innerHTML = "";
 
@@ -224,8 +211,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Carrega agenda ao abrir
+  // Carregar agenda inicial
   carregarAgenda();
+
 });
 </script>
 

@@ -80,32 +80,6 @@
       box-shadow: 0 4px 12px rgba(0,0,0,.05);
     }
 
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    label {
-      font-weight: 500;
-      display: block;
-      margin-bottom: .25rem;
-    }
-
-    input, select {
-      width: 100%;
-      padding: .5rem;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-    }
-
-    .btn-primary {
-      background: #4f46e5;
-      color: #fff;
-      border: none;
-      padding: .6rem 1.2rem;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
     .agenda-list {
       list-style: none;
       padding: 0;
@@ -117,35 +91,23 @@
       border-radius: 8px;
       padding: .75rem 1rem;
       margin-bottom: .75rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
     }
 
     .actions button {
-      margin-left: .5rem;
+      margin-top: .5rem;
       border: none;
       padding: .4rem .75rem;
       border-radius: 6px;
       cursor: pointer;
       font-size: .85rem;
-    }
-
-    .btn-finalizar {
-      background: #10b981;
-      color: #fff;
-    }
-
-    .btn-editar {
       background: #2563eb;
       color: #fff;
     }
 
-    .filter-bar {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
+    small {
+      color: #6b7280;
+      display: block;
+      margin-top: .25rem;
     }
   </style>
 </head>
@@ -171,45 +133,6 @@
 
   <div class="cards-grid">
     <div class="dashboard-card">
-      <h3>Novo Atendimento</h3>
-
-      <form id="agenda-form">
-        <input type="hidden" id="agendaId">
-
-        <div class="form-group">
-          <label>Cliente</label>
-          <input type="text" id="cliente" required>
-        </div>
-
-        <div class="form-group">
-          <label>Serviço</label>
-          <select id="servico" required></select>
-        </div>
-
-        <div class="form-group">
-          <label>Data</label>
-          <input type="date" id="data" required>
-        </div>
-
-        <div class="form-group">
-          <label>Hora</label>
-          <input type="time" id="hora" required>
-        </div>
-
-        <div class="form-group">
-          <label>Lembrete</label>
-          <select id="lembrete">
-            <option value="0">Sem lembrete</option>
-            <option value="24">24 horas antes</option>
-            <option value="2">2 horas antes</option>
-          </select>
-        </div>
-
-        <button class="btn-primary" type="submit">Salvar</button>
-      </form>
-    </div>
-
-    <div class="dashboard-card">
       <h3>Atendimentos</h3>
       <ul id="lista" class="agenda-list"></ul>
     </div>
@@ -222,13 +145,6 @@
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
 
-  const agendaForm = document.getElementById("agenda-form");
-  const agendaId = document.getElementById("agendaId");
-  const cliente = document.getElementById("cliente");
-  const servico = document.getElementById("servico");
-  const dataInput = document.getElementById("data");
-  const hora = document.getElementById("hora");
-  const lembrete = document.getElementById("lembrete");
   const lista = document.getElementById("lista");
   const logoutBtn = document.getElementById("logoutBtn");
 
@@ -244,72 +160,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     location.href = "index.html";
   };
 
-  const { data: servicos } = await supabase
-    .from("servicos")
-    .select("*")
-    .eq("user_id", user.id);
+  function formatarDataHora(dataISO, hora) {
+    const data = new Date(dataISO);
+    const dia = String(data.getDate()).padStart(2, "0");
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const ano = data.getFullYear();
 
-  servico.innerHTML = `<option value="">Selecione</option>`;
-  servicos.forEach(s => {
-    servico.innerHTML += `<option value="${s.id}" data-valor="${s.valor}">${s.nome}</option>`;
-  });
+    return `${dia}/${mes}/${ano} às ${hora.slice(0,5)}`;
+  }
 
-  agendaForm.onsubmit = async e => {
-    e.preventDefault();
-
-    const opt = servico.selectedOptions[0];
-    const payload = {
-      usuario_id: user.id,
-      cliente_nome: cliente.value,
-      servico_id: servico.value,
-      data_agendamento: dataInput.value,
-      hora: hora.value,
-      lembrete_horas: Number(lembrete.value),
-      valor: opt.dataset.valor
-    };
-
-    if (agendaId.value) {
-      await supabase.from("agendamentos").update(payload).eq("id", agendaId.value);
-    } else {
-      payload.status = "pendente";
-      await supabase.from("agendamentos").insert([payload]);
-    }
-
-    agendaForm.reset();
-    agendaId.value = "";
-    carregarAgenda();
-  };
-
-  window.editar = async id => {
-    const { data } = await supabase.from("agendamentos").select("*").eq("id", id).single();
-    if (data.status === "finalizado") {
-      alert("Agendamento finalizado não pode ser editado.");
-      return;
-    }
-
-    agendaId.value = data.id;
-    cliente.value = data.cliente_nome;
-    servico.value = data.servico_id;
-    dataInput.value = data.data_agendamento;
-    hora.value = data.hora;
-    lembrete.value = data.lembrete_horas ?? 0;
-  };
+  function textoLembrete(valor) {
+    if (!valor || valor === 0) return "Sem lembrete";
+    if (valor === 24) return "24 horas antes";
+    if (valor === 2) return "2 horas antes";
+    return `${valor} horas antes`;
+  }
 
   async function carregarAgenda() {
     lista.innerHTML = "";
-    const { data } = await supabase.from("agendamentos").select("*").eq("usuario_id", user.id);
+
+    const { data } = await supabase
+      .from("agendamentos")
+      .select("*")
+      .eq("usuario_id", user.id)
+      .order("data_agendamento");
 
     data.forEach(a => {
       lista.innerHTML += `
         <li>
-          <strong>${a.cliente_nome}</strong><br>
-          ${a.data_agendamento} ${a.hora}
-          <div class="actions">
-            ${a.status === "pendente"
-              ? `<button class="btn-editar" onclick="editar('${a.id}')">Alterar</button>`
-              : ""}
-          </div>
-        </li>`;
+          <strong>${a.cliente_nome}</strong>
+          <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
+          <small>Lembrete: ${textoLembrete(a.lembrete_horas)}</small>
+        </li>
+      `;
     });
   }
 

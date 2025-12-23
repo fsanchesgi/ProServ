@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     servicoSelect.innerHTML = `<option value="">Erro ao carregar serviços</option>`;
   }
 
-  // SALVAR AGENDA COM UPSERT
+  // SALVAR AGENDA
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     msg.textContent = "";
@@ -142,21 +142,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     const valor = Number(option.dataset.valor || 0);
 
     try {
-      // Upsert usando onConflict para prevenir 409
-      const { error } = await supabase
-        .from("agendamentos")
-        .upsert([{
-          usuario_id: user.id,
-          cliente_nome,
-          servico_id,
-          data_agendamento,
-          hora,
-          duracao_minutos: duracao_minutos || 0,
-          valor: valor || 0,
-          status: "agendado"
-        }], { onConflict: ["usuario_id", "data_agendamento", "hora"] });
+      // INSERIR AGENDAMENTO
+      const { data: newAgenda, error } = await supabase.from("agendamentos").insert([{
+        usuario_id: user.id,
+        cliente_nome,
+        servico_id,
+        data_agendamento,
+        hora,
+        duracao_minutos: duracao_minutos || 0,
+        valor: valor || 0,
+        status: "agendado"
+      }]).select(); // retorna o registro criado
 
       if (error) throw error;
+
+      // INSERIR FINANCEIRO APÓS CONFIRMAR AGENDAMENTO
+      const agendaId = newAgenda[0].id;
+      const { error: financeiroError } = await supabase.from("financeiro").insert([{
+        agenda_id: agendaId,
+        tipo: "receita",
+        valor: valor || 0,
+        status: "pendente"
+      }]);
+
+      if (financeiroError) throw financeiroError;
 
       msg.textContent = "Atendimento salvo com sucesso!";
       msg.style.color = "green";

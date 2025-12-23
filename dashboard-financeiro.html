@@ -4,13 +4,25 @@
   <meta charset="UTF-8">
   <title>ProServ | Financeiro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="icon" href="./images/favicon.png">
   <link rel="stylesheet" href="./style.css">
+  <style>
+    .dashboard-page { padding: 2rem; max-width: 1200px; margin: auto; }
+    .dashboard-header h1 { margin-bottom: 0.5rem; }
+    .cards { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .card { flex: 1 1 200px; background: #fff; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 1rem; }
+    .card h3 { margin-bottom: 0.5rem; font-size: 1rem; color: #555; }
+    .card p { font-size: 1.5rem; font-weight: bold; margin: 0; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    th { background: #f3f4f6; color: #111827; }
+    button.delete-btn { background: #ef4444; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+    button.delete-btn:hover { background: #dc2626; }
+    .search-bar { margin-bottom: 1rem; }
+    .search-bar input { padding: 0.5rem; width: 250px; border-radius: 4px; border: 1px solid #ccc; }
+  </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
   <div class="container">
     <img src="./images/logo.png" alt="ProServ Logo">
@@ -23,53 +35,45 @@
   </div>
 </header>
 
-<!-- FINANCEIRO -->
 <section class="dashboard-page">
-  <div class="container">
-
-    <div class="dashboard-header">
-      <h1>💰 Financeiro</h1>
-      <p>Controle seus ganhos e pagamentos</p>
-    </div>
-
-    <!-- RESUMO -->
-    <div class="dashboard-cards">
-
-      <div class="dashboard-card">
-        <h3>Total Faturado</h3>
-        <p id="total-faturado" class="valor">R$ 0,00</p>
-      </div>
-
-      <div class="dashboard-card">
-        <h3>Recebido</h3>
-        <p id="total-pago" class="valor recebido">R$ 0,00</p>
-      </div>
-
-      <div class="dashboard-card">
-        <h3>Pendente</h3>
-        <p id="total-pendente" class="valor pendente">R$ 0,00</p>
-      </div>
-
-    </div>
-
-    <!-- LISTA -->
-    <div class="dashboard-card">
-      <h3>Lançamentos</h3>
-
-      <table class="finance-table">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Cliente</th>
-            <th>Valor</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="lista-financeiro"></tbody>
-      </table>
-    </div>
-
+  <div class="dashboard-header">
+    <h1>💰 Financeiro</h1>
+    <p>Controle suas receitas e despesas</p>
   </div>
+
+  <div class="cards">
+    <div class="card">
+      <h3>Total Receitas</h3>
+      <p id="total-receitas">R$ 0,00</p>
+    </div>
+    <div class="card">
+      <h3>Total Despesas</h3>
+      <p id="total-despesas">R$ 0,00</p>
+    </div>
+    <div class="card">
+      <h3>Saldo</h3>
+      <p id="saldo">R$ 0,00</p>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="filtro-financeiro" placeholder="Pesquisar lançamento...">
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Tipo</th>
+        <th>Valor</th>
+        <th>Status</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-financeiro">
+      <!-- Lançamentos serão carregados aqui -->
+    </tbody>
+  </table>
 </section>
 
 <footer style="background:#111827; color:#9ca3af; text-align:center; padding:2rem;">
@@ -78,72 +82,96 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase.js"></script>
-<script src="./protect.js"></script>
 
 <script>
-const lista = document.getElementById("lista-financeiro");
-const totalFaturadoEl = document.getElementById("total-faturado");
-const totalPagoEl = document.getElementById("total-pago");
-const totalPendenteEl = document.getElementById("total-pendente");
+document.addEventListener("DOMContentLoaded", async () => {
+  const tabela = document.getElementById("tabela-financeiro");
+  const filtroInput = document.getElementById("filtro-financeiro");
+  const totalReceitas = document.getElementById("total-receitas");
+  const totalDespesas = document.getElementById("total-despesas");
+  const saldo = document.getElementById("saldo");
 
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await supabase.auth.signOut();
-  window.location.href = "index.html";
-});
-
-async function carregarFinanceiro() {
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const { data, error } = await supabase
-    .from("financeiro")
-    .select(`
-      *,
-      agendamentos(cliente_nome, data_agendamento)
-    `)
-    .eq("user_id", user.id)
-    .order("criado_em", { ascending: false });
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  let total = 0;
-  let pago = 0;
-  let pendente = 0;
-
-  lista.innerHTML = "";
-
-  data.forEach(f => {
-    total += Number(f.valor);
-
-    if (f.status === "pago") {
-      pago += Number(f.valor);
-    } else {
-      pendente += Number(f.valor);
-    }
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${f.agendamentos?.data_agendamento || "-"}</td>
-      <td>${f.agendamentos?.cliente_nome || "-"}</td>
-      <td>R$ ${Number(f.valor).toFixed(2)}</td>
-      <td>
-        <span class="status ${f.status}">
-          ${f.status}
-        </span>
-      </td>
-    `;
-
-    lista.appendChild(tr);
+  // Logout
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    window.location.href = "index.html";
   });
 
-  totalFaturadoEl.textContent = `R$ ${total.toFixed(2)}`;
-  totalPagoEl.textContent = `R$ ${pago.toFixed(2)}`;
-  totalPendenteEl.textContent = `R$ ${pendente.toFixed(2)}`;
-}
+  // Usuário logado
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) {
+    console.error("Usuário não autenticado");
+    return;
+  }
+  const user = authData.user;
 
-carregarFinanceiro();
+  // Carregar lançamentos financeiros
+  async function carregarFinanceiro() {
+    tabela.innerHTML = "";
+
+    let { data, error } = await supabase
+      .from("financeiro")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Erro ao carregar financeiro:", error);
+      return;
+    }
+
+    let totalR = 0;
+    let totalD = 0;
+
+    data.forEach(lancamento => {
+      if (lancamento.tipo === "receita") totalR += lancamento.valor;
+      else totalD += lancamento.valor;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${new Date(lancamento.created_at).toLocaleDateString()}</td>
+        <td>${lancamento.tipo}</td>
+        <td>R$ ${lancamento.valor.toFixed(2)}</td>
+        <td>${lancamento.status}</td>
+        <td><button class="delete-btn" onclick="excluirLancamento('${lancamento.id}')">Excluir</button></td>
+      `;
+      tabela.appendChild(tr);
+    });
+
+    totalReceitas.textContent = `R$ ${totalR.toFixed(2)}`;
+    totalDespesas.textContent = `R$ ${totalD.toFixed(2)}`;
+    saldo.textContent = `R$ ${(totalR - totalD).toFixed(2)}`;
+  }
+
+  // Excluir lançamento
+  window.excluirLancamento = async function(id) {
+    if (!confirm("Deseja realmente excluir este lançamento?")) return;
+
+    const { error } = await supabase
+      .from("financeiro")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Erro ao excluir lançamento:", error);
+      alert("Erro ao excluir lançamento.");
+      return;
+    }
+
+    carregarFinanceiro();
+  };
+
+  // Filtro de pesquisa
+  filtroInput.addEventListener("input", () => {
+    const filtro = filtroInput.value.toLowerCase();
+    const linhas = tabela.querySelectorAll("tr");
+    linhas.forEach(tr => {
+      tr.style.display = tr.textContent.toLowerCase().includes(filtro) ? "" : "none";
+    });
+  });
+
+  carregarFinanceiro();
+});
 </script>
 
 </body>

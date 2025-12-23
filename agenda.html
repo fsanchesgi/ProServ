@@ -19,6 +19,9 @@
       color: #fff;
       padding: 1rem 0;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
     header .container {
       display: flex;
@@ -50,7 +53,7 @@
 
     .dashboard-page {
       max-width: 1200px;
-      margin: 2rem auto;
+      margin: 4rem auto 2rem; /* espaço maior para não sobrepor o header */
       padding: 0 2rem;
     }
 
@@ -133,6 +136,21 @@
       font-size: 0.95rem;
     }
 
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .filter-bar input,
+    .filter-bar select {
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+    }
+
     footer {
       margin-top: 3rem;
     }
@@ -153,10 +171,6 @@
 
 <section class="dashboard-page">
   <div class="dashboard-header">
-    <br>
-    <br>
-    <br>
-    <br>
     <h1>📅 Agenda</h1>
     <p>Gerencie seus atendimentos</p>
   </div>
@@ -189,9 +203,15 @@
       <p id="msg"></p>
     </div>
 
-    <!-- Lista de Atendimentos -->
+    <!-- Lista de Atendimentos com Filtro -->
     <div class="dashboard-card">
       <h3>Atendimentos</h3>
+      <div class="filter-bar">
+        <input type="text" id="filtro-cliente" placeholder="Buscar por cliente">
+        <select id="filtro-servico">
+          <option value="">Todos os serviços</option>
+        </select>
+      </div>
       <ul id="lista-agenda" class="agenda-list"></ul>
     </div>
   </div>
@@ -211,6 +231,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const msg = document.getElementById("msg");
   const lista = document.getElementById("lista-agenda");
   const servicoSelect = document.getElementById("servico");
+  const filtroCliente = document.getElementById("filtro-cliente");
+  const filtroServico = document.getElementById("filtro-servico");
 
   // LOGOUT
   document.getElementById("logoutBtn").addEventListener("click", async () => {
@@ -227,6 +249,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const user = authData.user;
 
   // CARREGAR SERVIÇOS
+  let servicosCache = [];
   try {
     const { data: servicos, error: servicosError } = await supabase
       .from("servicos")
@@ -236,6 +259,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (servicosError) throw servicosError;
 
+    servicosCache = servicos;
+
+    // Preencher dropdown do form
     servicoSelect.innerHTML = `<option value="">Selecione o serviço</option>`;
     servicos.forEach(s => {
       const opt = document.createElement("option");
@@ -244,6 +270,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       opt.dataset.valor = s.valor;
       opt.textContent = `${s.nome} (${s.duracao_minutos} min) - R$ ${s.valor}`;
       servicoSelect.appendChild(opt);
+    });
+
+    // Preencher dropdown do filtro
+    filtroServico.innerHTML = `<option value="">Todos os serviços</option>`;
+    servicos.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.nome;
+      filtroServico.appendChild(opt);
     });
 
     if (servicos.length === 0) {
@@ -318,35 +353,42 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function carregarAgenda() {
     lista.innerHTML = "";
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("agendamentos")
       .select("id, cliente_nome, servico_id, data_agendamento, hora")
       .eq("usuario_id", user.id)
       .order("data_agendamento");
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Erro ao listar agenda:", error);
       return;
     }
 
-    const { data: servicos, error: servicosError } = await supabase
-      .from("servicos")
-      .select("id, nome")
-      .eq("user_id", user.id);
-
     const servicoMap = {};
-    servicos?.forEach(s => servicoMap[s.id] = s.nome);
+    servicosCache.forEach(s => servicoMap[s.id] = s.nome);
 
-    data.forEach(a => {
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <strong>${a.cliente_nome}</strong><br>
-        ${a.data_agendamento} às ${a.hora}<br>
-        Serviço: ${servicoMap[a.servico_id] || "-"}
-      `;
-      lista.appendChild(li);
-    });
+    const filtroNome = filtroCliente.value.toLowerCase();
+    const filtroServ = filtroServico.value;
+
+    data
+      .filter(a => a.cliente_nome.toLowerCase().includes(filtroNome))
+      .filter(a => filtroServ === "" || a.servico_id === filtroServ)
+      .forEach(a => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <strong>${a.cliente_nome}</strong><br>
+          ${a.data_agendamento} às ${a.hora}<br>
+          Serviço: ${servicoMap[a.servico_id] || "-"}
+        `;
+        lista.appendChild(li);
+      });
   }
+
+  // Atualiza lista ao digitar ou mudar filtro
+  filtroCliente.addEventListener("input", carregarAgenda);
+  filtroServico.addEventListener("change", carregarAgenda);
 
   carregarAgenda();
 });

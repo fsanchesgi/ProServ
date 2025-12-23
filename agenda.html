@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     servicoSelect.innerHTML = `<option value="">Erro ao carregar serviços</option>`;
   }
 
-  // SALVAR AGENDA
+  // SALVAR AGENDA + FINANCEIRO
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     msg.textContent = "";
@@ -143,27 +143,32 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       // INSERIR AGENDAMENTO
-      const { data: newAgenda, error } = await supabase.from("agendamentos").insert([{
-        usuario_id: user.id,
-        cliente_nome,
-        servico_id,
-        data_agendamento,
-        hora,
-        duracao_minutos: duracao_minutos || 0,
-        valor: valor || 0,
-        status: "agendado"
-      }]).select(); // retorna o registro criado
+      const { data: novoAgendamento, error: agendamentoError } = await supabase
+        .from("agendamentos")
+        .insert([{
+          usuario_id: user.id,
+          cliente_nome,
+          servico_id,
+          data_agendamento,
+          hora,
+          duracao_minutos: duracao_minutos || 0,
+          valor: valor || 0,
+          status: "agendado"
+        }])
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (agendamentoError) throw agendamentoError;
 
-      // INSERIR FINANCEIRO APÓS CONFIRMAR AGENDAMENTO
-      const agendaId = newAgenda[0].id;
-      const { error: financeiroError } = await supabase.from("financeiro").insert([{
-        agenda_id: agendaId,
-        tipo: "receita",
-        valor: valor || 0,
-        status: "pendente"
-      }]);
+      // INSERIR NO FINANCEIRO AUTOMATICAMENTE
+      const { error: financeiroError } = await supabase
+        .from("financeiro")
+        .insert([{
+          agenda_id: novoAgendamento.id,
+          tipo: "receita",
+          valor: valor || 0,
+          status: "pendente"
+        }]);
 
       if (financeiroError) throw financeiroError;
 

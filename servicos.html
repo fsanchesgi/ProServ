@@ -2,23 +2,19 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>ProServ | Meus Serviços</title>
+  <title>ProServ | Gestão de Serviços</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="icon" type="image/png" href="./images/favicon.png">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
-<!-- HEADER PADRÃO REDUZIDO -->
-<header class="dashboard-header-fixed">
+<header>
   <div class="container">
-    <img src="./images/logo.png" alt="ProServ Logo" class="logo-sm">
-
+    <img src="./images/logo.png" alt="ProServ Logo" style="max-height:50px;">
     <nav>
       <a href="dashboard.html">Dashboard</a>
-      <a href="servicos.html" class="active">Serviços</a>
       <a href="agenda.html">Agenda</a>
+      <a href="servicos.html" class="active">Serviços</a>
       <button id="logoutBtn">Sair</button>
     </nav>
   </div>
@@ -27,117 +23,204 @@
 <section class="dashboard-page">
   <div class="container">
 
-    <h1>🧾 Meus Serviços</h1>
-    <p>Cadastre os serviços que você oferece</p>
-
-    <!-- FORM -->
-    <div class="agenda-form">
-      <h3>Novo Serviço</h3>
-
-      <form id="servico-form">
-        <input type="text" id="nome" placeholder="Nome do serviço" required>
-        <input type="number" id="valor" placeholder="Valor (R$)" required min="0" step="0.01">
-        <textarea id="descricao" placeholder="Descrição (opcional)"></textarea>
-
-        <button class="plan-button" type="submit">Salvar Serviço</button>
-      </form>
-
-      <p id="msg"></p>
+    <div class="dashboard-header">
+      <h1>🛠 Gestão de Serviços</h1>
+      <p>Cadastre, edite ou exclua serviços facilmente</p>
     </div>
 
-    <!-- LISTA -->
-    <div class="agenda-list">
-      <h3>Serviços cadastrados</h3>
+    <!-- Card: Novo Serviço -->
+    <div class="dashboard-card">
+      <h3>Novo Serviço</h3>
+      <form id="servico-form">
+        <div class="form-group">
+          <label>Nome do Serviço</label>
+          <input type="text" id="nome" required>
+        </div>
+        <div class="form-group">
+          <label>Duração (minutos)</label>
+          <input type="number" id="duracao" min="1" required>
+        </div>
+        <div class="form-group">
+          <label>Valor (R$)</label>
+          <input type="number" id="valor" min="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label>Categoria</label>
+          <input type="text" id="categoria">
+        </div>
+        <div class="form-group">
+          <label>Promoção ativa?</label>
+          <input type="checkbox" id="promo_ativa">
+        </div>
+        <div class="form-group">
+          <label>Valor Promocional (R$)</label>
+          <input type="number" id="valor_promocional" min="0" step="0.01">
+        </div>
+        <button class="plan-button" type="submit">Salvar Serviço</button>
+      </form>
+      <p id="msg-servico"></p>
+    </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Serviço</th>
-            <th>Descrição</th>
-            <th>Valor</th>
-          </tr>
-        </thead>
-        <tbody id="servicos-body"></tbody>
-      </table>
+    <!-- Card: Lista de Serviços -->
+    <div class="dashboard-card">
+      <h3>Serviços Cadastrados</h3>
+      <div class="form-group">
+        <label>Filtrar por Categoria</label>
+        <input type="text" id="filtro-categoria" placeholder="Digite a categoria">
+      </div>
+      <ul id="lista-servicos" class="agenda-list"></ul>
     </div>
 
   </div>
 </section>
 
-<footer class="dashboard-footer">
-  <p>&copy; 2025 ProServ</p>
+<footer style="background:#111827; color:#9ca3af; text-align:center; padding:2rem;">
+  &copy; 2025 ProServ
 </footer>
 
-<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase.js"></script>
-<script src="./protect.js"></script>
 
 <script>
-let userId = null;
+document.addEventListener("DOMContentLoaded", async () => {
+  const form = document.getElementById("servico-form");
+  const msg = document.getElementById("msg-servico");
+  const lista = document.getElementById("lista-servicos");
+  const filtroCategoria = document.getElementById("filtro-categoria");
 
-// 🔐 sessão
-async function loadSession() {
-  const { data } = await supabase.auth.getUser();
-  userId = data.user.id;
-}
-
-// 📋 listar serviços
-async function loadServicos() {
-  const { data } = await supabase
-    .from("servicos")
-    .select("*")
-    .order("nome");
-
-  const tbody = document.getElementById("servicos-body");
-  tbody.innerHTML = "";
-
-  data.forEach(s => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${s.nome}</td>
-      <td>${s.descricao || "-"}</td>
-      <td>R$ ${s.valor}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-// ➕ salvar serviço
-document.getElementById("servico-form").addEventListener("submit", async e => {
-  e.preventDefault();
-
-  const { error } = await supabase.from("servicos").insert({
-    user_id: userId,
-    nome: nome.value,
-    descricao: descricao.value,
-    valor: valor.value
+  // LOGOUT
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    window.location.href = "index.html";
   });
 
-  if (error) {
-    msg.textContent = error.message;
-    msg.style.color = "red";
+  // USUÁRIO LOGADO
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) {
+    console.error("Usuário não autenticado");
     return;
   }
+  const user = authData.user;
 
-  msg.textContent = "Serviço cadastrado com sucesso!";
-  msg.style.color = "green";
+  // FUNÇÃO: CARREGAR SERVIÇOS
+  async function carregarServicos(filtro = "") {
+    lista.innerHTML = "";
+    let query = supabase.from("servicos").select("*").eq("user_id", user.id);
+    if (filtro.trim()) query = query.ilike("categoria", `%${filtro}%`);
+    const { data: servicos, error } = await query.order("nome");
+    if (error) return console.error("Erro ao carregar serviços:", error);
 
-  e.target.reset();
-  loadServicos();
+    servicos.forEach(s => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <strong>${s.nome}</strong> (${s.duracao_minutos} min) - R$ ${s.valor}
+        ${s.promo_ativa ? ` | Promo: R$ ${s.valor_promocional}` : ""}
+        <br>Categoria: ${s.categoria || "-"}
+        <div class="btn-group">
+          <button onclick="editarServico('${s.id}')">Editar</button>
+          <button onclick="excluirServico('${s.id}')">Excluir</button>
+        </div>
+      `;
+      lista.appendChild(li);
+    });
+  }
+
+  // FILTRO POR CATEGORIA
+  filtroCategoria.addEventListener("input", () => {
+    carregarServicos(filtroCategoria.value);
+  });
+
+  // SALVAR NOVO SERVIÇO
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.textContent = "";
+
+    const nome = document.getElementById("nome").value.trim();
+    const duracao_minutos = Number(document.getElementById("duracao").value);
+    const valor = Number(document.getElementById("valor").value);
+    const categoria = document.getElementById("categoria").value.trim();
+    const promo_ativa = document.getElementById("promo_ativa").checked;
+    const valor_promocional = Number(document.getElementById("valor_promocional").value || 0);
+
+    try {
+      const { error } = await supabase.from("servicos").insert([{
+        user_id: user.id,
+        nome,
+        duracao_minutos,
+        valor,
+        categoria,
+        promo_ativa,
+        valor_promocional
+      }]);
+      if (error) throw error;
+
+      msg.textContent = "Serviço cadastrado com sucesso!";
+      msg.style.color = "green";
+      form.reset();
+      carregarServicos();
+
+    } catch (err) {
+      console.error("Erro ao salvar serviço:", err);
+      msg.textContent = "Erro ao salvar serviço.";
+      msg.style.color = "red";
+    }
+  });
+
+  // FUNÇÃO GLOBAL: EXCLUIR SERVIÇO
+  window.excluirServico = async (id) => {
+    if (!confirm("Deseja realmente excluir este serviço?")) return;
+    const { error } = await supabase.from("servicos").delete().eq("id", id).eq("user_id", user.id);
+    if (error) return console.error("Erro ao excluir serviço:", error);
+    carregarServicos();
+  }
+
+  // FUNÇÃO GLOBAL: EDITAR SERVIÇO
+  window.editarServico = async (id) => {
+    const { data, error } = await supabase.from("servicos").select("*").eq("id", id).single();
+    if (error) return console.error("Erro ao buscar serviço:", error);
+
+    document.getElementById("nome").value = data.nome;
+    document.getElementById("duracao").value = data.duracao_minutos;
+    document.getElementById("valor").value = data.valor;
+    document.getElementById("categoria").value = data.categoria || "";
+    document.getElementById("promo_ativa").checked = data.promo_ativa;
+    document.getElementById("valor_promocional").value = data.valor_promocional || 0;
+
+    // Alterar submit para atualizar serviço
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      msg.textContent = "";
+      try {
+        const { error } = await supabase.from("servicos").update({
+          nome: document.getElementById("nome").value.trim(),
+          duracao_minutos: Number(document.getElementById("duracao").value),
+          valor: Number(document.getElementById("valor").value),
+          categoria: document.getElementById("categoria").value.trim(),
+          promo_ativa: document.getElementById("promo_ativa").checked,
+          valor_promocional: Number(document.getElementById("valor_promocional").value || 0)
+        }).eq("id", id).eq("user_id", user.id);
+
+        if (error) throw error;
+        msg.textContent = "Serviço atualizado com sucesso!";
+        msg.style.color = "green";
+        form.reset();
+        form.onsubmit = salvarServicoOriginal;
+        carregarServicos();
+
+      } catch (err) {
+        console.error("Erro ao atualizar serviço:", err);
+        msg.textContent = "Erro ao atualizar serviço.";
+        msg.style.color = "red";
+      }
+    }
+  }
+
+  // Salvar serviço original (novo)
+  const salvarServicoOriginal = form.onsubmit;
+
+  // Carregar inicialmente
+  carregarServicos();
 });
-
-// 🚪 logout
-document.getElementById("logoutBtn").onclick = async () => {
-  await supabase.auth.signOut();
-  window.location.href = "index.html";
-};
-
-// INIT
-(async () => {
-  await loadSession();
-  await loadServicos();
-})();
 </script>
 
 </body>

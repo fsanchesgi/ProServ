@@ -24,7 +24,6 @@
 
     header .container {
       max-width: 100%;
-      margin: 0;
       padding: 0 2rem;
       display: flex;
       justify-content: space-between;
@@ -55,16 +54,6 @@
       max-width: 1200px;
       margin: 2.5rem auto;
       padding: 0 2rem;
-    }
-
-    .dashboard-header h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-
-    .dashboard-header p {
-      margin: .25rem 0 2rem;
-      color: #6b7280;
     }
 
     .cards-grid {
@@ -133,8 +122,8 @@
     }
 
     .btn-finalizar { background: #10b981; color: #fff; }
+    .btn-editar { background: #f59e0b; color: #fff; }
     .btn-excluir { background: #ef4444; color: #fff; }
-    .btn-editar { background: #3b82f6; color: #fff; }
 
     .filter-bar {
       display: flex;
@@ -158,12 +147,9 @@
 </header>
 
 <section class="dashboard-page">
-  <div class="dashboard-header">
-    <h1>📅 Agenda</h1>
-    <p>Gerencie seus atendimentos</p>
-  </div>
 
   <div class="cards-grid">
+
     <div class="dashboard-card">
       <h3>Novo Atendimento</h3>
 
@@ -214,6 +200,7 @@
 
       <ul id="lista-agenda" class="agenda-list"></ul>
     </div>
+
   </div>
 </section>
 
@@ -223,138 +210,130 @@
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
 
-  let agendaCache = []
+  const form = document.getElementById("agenda-form");
+  const lista = document.getElementById("lista-agenda");
+  const servicoSelect = document.getElementById("servico");
+  const filtroCliente = document.getElementById("filtro-cliente");
+  const filtroServico = document.getElementById("filtro-servico");
+  const msg = document.getElementById("msg");
 
-  const form = document.getElementById("agenda-form")
-  const lista = document.getElementById("lista-agenda")
-  const servicoSelect = document.getElementById("servico")
-  const filtroCliente = document.getElementById("filtro-cliente")
-  const filtroServico = document.getElementById("filtro-servico")
-  const msg = document.getElementById("msg")
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return location.href = "index.html";
+  const user = auth.user;
 
-  const { data: auth } = await supabase.auth.getUser()
-  const user = auth.user
-  if (!user) return location.href = "index.html"
-
-  document.getElementById("logoutBtn").onclick = async () => {
-    await supabase.auth.signOut()
-    location.href = "index.html"
-  }
+  logoutBtn.onclick = async () => {
+    await supabase.auth.signOut();
+    location.href = "index.html";
+  };
 
   const { data: servicos } = await supabase
     .from("servicos")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", user.id);
 
-  servicoSelect.innerHTML = `<option value="">Selecione</option>`
-  filtroServico.innerHTML = `<option value="">Todos</option>`
+  servicoSelect.innerHTML = `<option value="">Selecione</option>`;
+  filtroServico.innerHTML = `<option value="">Todos</option>`;
 
   servicos.forEach(s => {
-    servicoSelect.innerHTML += `<option value="${s.id}" data-valor="${s.valor}">${s.nome}</option>`
-    filtroServico.innerHTML += `<option value="${s.id}">${s.nome}</option>`
-  })
+    servicoSelect.innerHTML += `<option value="${s.id}" data-valor="${s.valor}">${s.nome}</option>`;
+    filtroServico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
+  });
 
   form.onsubmit = async e => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const opt = servicoSelect.selectedOptions[0]
-    const agendaId = document.getElementById("agenda-id").value
+    const id = document.getElementById("agenda-id").value;
+    const opt = servicoSelect.selectedOptions[0];
 
     const payload = {
+      usuario_id: user.id,
       cliente_nome: cliente.value,
       servico_id: servicoSelect.value,
       data_agendamento: data.value,
       hora: hora.value,
-      lembrete_horas: lembrete.value
-    }
+      valor: opt.dataset.valor,
+      lembrete_horas: Number(lembrete.value)
+    };
 
-    if (agendaId) {
-      await supabase.from("agendamentos").update(payload).eq("id", agendaId)
+    if (id) {
+      await supabase.from("agendamentos").update(payload).eq("id", id);
     } else {
-      payload.usuario_id = user.id
-      payload.valor = opt.dataset.valor
-      payload.status = "pendente"
-      await supabase.from("agendamentos").insert([payload])
+      payload.status = "pendente";
+      await supabase.from("agendamentos").insert([payload]);
     }
 
-    form.reset()
-    document.getElementById("agenda-id").value = ""
-    carregarAgenda()
+    form.reset();
+    agendaId.value = "";
+    carregarAgenda();
+  };
+
+  async function carregarAgenda() {
+    lista.innerHTML = "";
+
+    const { data } = await supabase
+      .from("agendamentos")
+      .select("*")
+      .eq("usuario_id", user.id)
+      .order("data_agendamento");
+
+    data
+      .filter(a => a.cliente_nome.toLowerCase().includes(filtroCliente.value.toLowerCase()))
+      .filter(a => filtroServico.value === "" || a.servico_id === filtroServico.value)
+      .forEach(a => {
+        lista.innerHTML += `
+          <li>
+            <div>
+              <strong>${a.cliente_nome}</strong><br>
+              ${a.data_agendamento} ${a.hora}<br>
+              Lembrete: ${a.lembrete_horas || 0}h
+            </div>
+            <div class="actions">
+              ${a.status === "pendente" ? `
+                <button class="btn-editar" onclick="editar('${a.id}')">Editar</button>
+                <button class="btn-finalizar" onclick="finalizar('${a.id}', ${a.valor})">Finalizar</button>
+              ` : ""}
+              <button class="btn-excluir" onclick="excluir('${a.id}')">Excluir</button>
+            </div>
+          </li>`;
+      });
   }
 
-  window.editarAgendamento = id => {
-    const a = agendaCache.find(i => i.id === id)
-    if (!a) return
+  window.editar = async id => {
+    const { data } = await supabase.from("agendamentos").select("*").eq("id", id).single();
+    if (data.status === "finalizado") return alert("Agendamento finalizado não pode ser editado.");
 
-    if (a.status === "finalizado") {
-      alert("Agendamento finalizado não pode ser editado.")
-      return
-    }
+    agendaId.value = data.id;
+    cliente.value = data.cliente_nome;
+    servico.value = data.servico_id;
+    data.value = data.data_agendamento;
+    hora.value = data.hora;
+    lembrete.value = data.lembrete_horas || 0;
+  };
 
-    document.getElementById("agenda-id").value = a.id
-    cliente.value = a.cliente_nome
-    servico.value = a.servico_id
-    data.value = a.data_agendamento
-    hora.value = a.hora
-    lembrete.value = a.lembrete_horas || 0
-  }
-
-  async function excluirAgendamento(id) {
-    if (confirm("Excluir atendimento?")) {
-      await supabase.from("agendamentos").delete().eq("id", id)
-      carregarAgenda()
-    }
-  }
-
-  async function finalizarAgendamento(id, valor) {
-    await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id)
+  window.finalizar = async (id, valor) => {
+    await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id);
     await supabase.from("financeiro").insert([{
       agenda_id: id,
       user_id: user.id,
       tipo: "receita",
       valor,
       status: "confirmado"
-    }])
-    carregarAgenda()
-  }
+    }]);
+    carregarAgenda();
+  };
 
-  async function carregarAgenda() {
-    lista.innerHTML = ""
+  window.excluir = async id => {
+    if (confirm("Excluir atendimento?")) {
+      await supabase.from("agendamentos").delete().eq("id", id);
+      carregarAgenda();
+    }
+  };
 
-    const { data } = await supabase
-      .from("agendamentos")
-      .select("*")
-      .eq("usuario_id", user.id)
-      .order("data_agendamento")
+  filtroCliente.oninput = carregarAgenda;
+  filtroServico.onchange = carregarAgenda;
 
-    agendaCache = data || []
-
-    agendaCache
-      .filter(a => a.cliente_nome.toLowerCase().includes(filtroCliente.value.toLowerCase()))
-      .filter(a => filtroServico.value === "" || a.servico_id === filtroServico.value)
-      .forEach(a => {
-        lista.innerHTML += `
-        <li>
-          <div>
-            <strong>${a.cliente_nome}</strong><br>
-            ${a.data_agendamento} ${a.hora}
-          </div>
-          <div class="actions">
-            ${a.status === "pendente"
-              ? `<button class="btn-finalizar" onclick="finalizarAgendamento('${a.id}', ${a.valor})">Finalizar</button>`
-              : ""}
-            <button class="btn-editar" onclick="editarAgendamento('${a.id}')">Editar</button>
-            <button class="btn-excluir" onclick="excluirAgendamento('${a.id}')">Excluir</button>
-          </div>
-        </li>`
-      })
-  }
-
-  filtroCliente.oninput = carregarAgenda
-  filtroServico.onchange = carregarAgenda
-
-  carregarAgenda()
-})
+  carregarAgenda();
+});
 </script>
 
 </body>

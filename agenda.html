@@ -3,15 +3,146 @@
 <head>
   <meta charset="UTF-8">
   <title>ProServ | Agenda</title>
-   <link rel="icon" type="image/png" href="./images/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="./style.css">
+  <style>
+    /* ===== Layout Profissional ===== */
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      color: #111827;
+    }
+
+    header {
+      background: #111827;
+      color: #fff;
+      padding: 1rem 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+    header nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-right: 1.5rem;
+      font-weight: 500;
+    }
+    header nav a.active {
+      border-bottom: 2px solid #4f46e5;
+      padding-bottom: 2px;
+    }
+    header nav button {
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .dashboard-page {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+
+    .dashboard-header h1 {
+      margin-bottom: 0.2rem;
+      font-size: 2rem;
+    }
+    .dashboard-header p {
+      margin: 0;
+      color: #6b7280;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .dashboard-card {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .dashboard-card h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+      color: #111827;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.3rem;
+      font-weight: 500;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+    }
+
+    .plan-button {
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .plan-button:hover {
+      background: #4338ca;
+    }
+
+    #msg {
+      margin-top: 0.8rem;
+      font-weight: 500;
+    }
+
+    .agenda-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .agenda-list li {
+      background: #f3f4f6;
+      margin-bottom: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+
+    footer {
+      margin-top: 3rem;
+    }
+  </style>
 </head>
 <body>
 
 <header>
   <div class="container">
-    <img src="./images/logo.png" alt="ProServ Logo">
+    <img src="./images/logo.png" alt="ProServ Logo" height="40">
     <nav>
       <a href="dashboard.html">Dashboard</a>
       <a href="agenda.html" class="active">Agenda</a>
@@ -21,13 +152,13 @@
 </header>
 
 <section class="dashboard-page">
-  <div class="container">
+  <div class="dashboard-header">
+    <h1>📅 Agenda</h1>
+    <p>Gerencie seus atendimentos</p>
+  </div>
 
-    <div class="dashboard-header">
-      <h1>📅 Agenda</h1>
-      <p>Gerencie seus atendimentos</p>
-    </div>
-
+  <div class="cards-grid">
+    <!-- Formulário de Novo Atendimento -->
     <div class="dashboard-card">
       <h3>Novo Atendimento</h3>
       <form id="agenda-form">
@@ -54,11 +185,11 @@
       <p id="msg"></p>
     </div>
 
+    <!-- Lista de Atendimentos -->
     <div class="dashboard-card">
       <h3>Atendimentos</h3>
       <ul id="lista-agenda" class="agenda-list"></ul>
     </div>
-
   </div>
 </section>
 
@@ -85,10 +216,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // USUÁRIO LOGADO
   const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user || !authData.user.id) {
+  if (authError || !authData.user) {
     console.error("Usuário não autenticado");
-    msg.textContent = "Usuário não autenticado ou sessão expirada.";
-    msg.style.color = "red";
     return;
   }
   const user = authData.user;
@@ -129,12 +258,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     e.preventDefault();
     msg.textContent = "";
 
-    if (!user || !user.id) {
-      msg.textContent = "Usuário não autenticado.";
-      msg.style.color = "red";
-      return;
-    }
-
     const cliente_nome = document.getElementById("cliente").value.trim();
     const servico_id = servicoSelect.value;
     const data_agendamento = document.getElementById("data").value;
@@ -151,34 +274,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     const valor = Number(option.dataset.valor || 0);
 
     try {
-      // INSERIR AGENDAMENTO
-      const { data: novoAgendamento, error: agendaError } = await supabase
-        .from("agendamentos")
-        .insert([{
-          usuario_id: user.id,
-          cliente_nome,
-          servico_id,
-          data_agendamento,
-          hora,
-          duracao_minutos,
-          valor,
-          status: "agendado"
-        }])
-        .select()
-        .single();
+      const { data: novoAgendamento, error } = await supabase.from("agendamentos").insert([{
+        usuario_id: user.id,
+        cliente_nome,
+        servico_id,
+        data_agendamento,
+        hora,
+        duracao_minutos: duracao_minutos || 0,
+        valor: valor || 0,
+        status: "agendado"
+      }]).select().single();
 
-      if (agendaError) throw agendaError;
+      if (error) throw error;
 
-      // INSERIR FINANCEIRO
-      const { error: financeiroError } = await supabase
-        .from("financeiro")
-        .insert([{
-          agenda_id: novoAgendamento.id,
-          user_id: user.id,
-          tipo: "receita",
-          valor: valor || 0,
-          status: "pendente"
-        }]);
+      // Inserir financeiro
+      const { error: financeiroError } = await supabase.from("financeiro").insert([{
+        agenda_id: novoAgendamento.id,
+        user_id: user.id,
+        tipo: "receita",
+        valor: valor || 0,
+        status: "pendente"
+      }]);
 
       if (financeiroError) throw financeiroError;
 

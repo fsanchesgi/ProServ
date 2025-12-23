@@ -180,7 +180,7 @@
 
 <header>
   <div class="container">
-    <img src="./images/logo.png" alt="ProServ Logo" height="80">
+    <img src="./images/logo.png" alt="ProServ Logo" height="40">
     <nav>
       <a href="dashboard.html">Dashboard</a>
       <a href="agenda.html" class="active">Agenda</a>
@@ -196,7 +196,6 @@
   </div>
 
   <div class="cards-grid">
-    <!-- Formulário de Novo Atendimento -->
     <div class="dashboard-card">
       <h3>Novo Atendimento</h3>
       <form id="agenda-form">
@@ -223,7 +222,6 @@
       <p id="msg"></p>
     </div>
 
-    <!-- Lista de Atendimentos com Filtro -->
     <div class="dashboard-card">
       <h3>Atendimentos</h3>
       <div class="filter-bar">
@@ -246,7 +244,6 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
-
   const form = document.getElementById("agenda-form");
   const msg = document.getElementById("msg");
   const lista = document.getElementById("lista-agenda");
@@ -262,10 +259,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // USUÁRIO LOGADO
   const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    console.error("Usuário não autenticado");
-    return;
-  }
+  if (authError || !authData.user) return;
   const user = authData.user;
 
   // CARREGAR SERVIÇOS
@@ -280,8 +274,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (servicosError) throw servicosError;
     servicosCache = servicos;
 
-    // Preencher dropdown do form
-    servicoSelect.innerHTML = `<option value="">Selecione o serviço</option>`;
     servicos.forEach(s => {
       const opt = document.createElement("option");
       opt.value = s.id;
@@ -291,7 +283,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       servicoSelect.appendChild(opt);
     });
 
-    // Preencher dropdown do filtro
     filtroServico.innerHTML = `<option value="">Todos os serviços</option>`;
     servicos.forEach(s => {
       const opt = document.createElement("option");
@@ -299,10 +290,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       opt.textContent = s.nome;
       filtroServico.appendChild(opt);
     });
-
   } catch (err) {
-    console.error("Erro ao carregar serviços:", err);
-    servicoSelect.innerHTML = `<option value="">Erro ao carregar serviços</option>`;
+    console.error(err);
   }
 
   // SALVAR AGENDA
@@ -332,14 +321,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         servico_id,
         data_agendamento,
         hora,
-        duracao_minutos: duracao_minutos || 0,
-        valor: valor || 0,
+        duracao_minutos,
+        valor,
         status: "agendado"
       }]).select().single();
 
       if (error) throw error;
 
-      // Inserir financeiro
       const { error: financeiroError } = await supabase.from("financeiro").insert([{
         agenda_id: novoAgendamento.id,
         user_id: user.id,
@@ -347,7 +335,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         valor: valor || 0,
         status: "pendente"
       }]);
-
       if (financeiroError) throw financeiroError;
 
       msg.textContent = "Atendimento salvo com sucesso!";
@@ -370,7 +357,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (error) throw error;
       carregarAgenda();
     } catch (err) {
-      console.error("Erro ao excluir atendimento:", err);
+      console.error(err);
       alert("Erro ao excluir atendimento.");
     }
   }
@@ -385,10 +372,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       .eq("usuario_id", user.id)
       .order("data_agendamento");
 
-    if (error) {
-      console.error("Erro ao listar agenda:", error);
-      return;
-    }
+    if (error) return;
 
     const servicoMap = {};
     servicosCache.forEach(s => servicoMap[s.id] = s.nome);
@@ -407,19 +391,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             ${a.data_agendamento} às ${a.hora}<br>
             Serviço: ${servicoMap[a.servico_id] || "-"}
           </div>
-          <button class="btn-delete" onclick="excluirAgendamento('${a.id}')">Excluir</button>
         `;
+        const btn = document.createElement("button");
+        btn.textContent = "Excluir";
+        btn.className = "btn-delete";
+        btn.addEventListener("click", () => excluirAgendamento(a.id));
+        li.appendChild(btn);
         lista.appendChild(li);
       });
   }
 
-  // Atualiza lista ao digitar ou mudar filtro
   filtroCliente.addEventListener("input", carregarAgenda);
   filtroServico.addEventListener("change", carregarAgenda);
 
   carregarAgenda();
 });
 </script>
-
 </body>
 </html>

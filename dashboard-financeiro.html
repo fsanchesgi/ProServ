@@ -8,13 +8,14 @@
   <style>
     /* Header mais compacto */
     header .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem 2rem;
-      background: #111827;
-      color: #fff;
-    }
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  max-width:1200px;  /* centraliza e limita largura */
+  margin:0 auto;      /* remove as margens laterais */
+  height:60px;
+  padding:0 1rem;     /* espaçamento mínimo interno */
+}
     header nav a {
       margin-right: 1rem;
       font-size: 0.9rem;
@@ -78,7 +79,7 @@
 
 <header>
   <div class="container">
-    <img src="./images/logo.png" alt="ProServ Logo" style="height:40px;">
+    <img src="./images/logo.png" alt="ProServ Logo" style="height:80px;">
     <nav>
       <a href="dashboard.html">Dashboard</a>
       <a href="agenda.html" class="active">Agenda</a>

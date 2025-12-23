@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="./style.css">
   <style>
-    /* ===== Layout Profissional ===== */
     body {
       font-family: 'Inter', sans-serif;
       background: #f9f9f9;
@@ -53,7 +52,7 @@
 
     .dashboard-page {
       max-width: 1200px;
-      margin: 4rem auto 2rem; /* espaço maior para não sobrepor o header */
+      margin: 4rem auto 2rem;
       padding: 0 2rem;
     }
 
@@ -129,11 +128,33 @@
       margin: 0;
     }
     .agenda-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       background: #f3f4f6;
       margin-bottom: 0.75rem;
       padding: 0.75rem 1rem;
       border-radius: 8px;
       font-size: 0.95rem;
+    }
+
+    .agenda-list li div {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .btn-delete {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+    .btn-delete:hover {
+      background: #dc2626;
     }
 
     .filter-bar {
@@ -142,7 +163,6 @@
       gap: 1rem;
       margin-bottom: 1rem;
     }
-
     .filter-bar input,
     .filter-bar select {
       padding: 0.5rem;
@@ -258,7 +278,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       .order("nome");
 
     if (servicosError) throw servicosError;
-
     servicosCache = servicos;
 
     // Preencher dropdown do form
@@ -281,12 +300,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       filtroServico.appendChild(opt);
     });
 
-    if (servicos.length === 0) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "Nenhum serviço disponível";
-      servicoSelect.appendChild(opt);
-    }
   } catch (err) {
     console.error("Erro ao carregar serviços:", err);
     servicoSelect.innerHTML = `<option value="">Erro ao carregar serviços</option>`;
@@ -349,17 +362,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  // EXCLUIR AGENDAMENTO
+  async function excluirAgendamento(id) {
+    if (!confirm("Deseja realmente excluir este atendimento?")) return;
+    try {
+      const { error } = await supabase.from("agendamentos").delete().eq("id", id);
+      if (error) throw error;
+      carregarAgenda();
+    } catch (err) {
+      console.error("Erro ao excluir atendimento:", err);
+      alert("Erro ao excluir atendimento.");
+    }
+  }
+
   // LISTAR AGENDA
   async function carregarAgenda() {
     lista.innerHTML = "";
 
-    let query = supabase
+    const { data, error } = await supabase
       .from("agendamentos")
       .select("id, cliente_nome, servico_id, data_agendamento, hora")
       .eq("usuario_id", user.id)
       .order("data_agendamento");
-
-    const { data, error } = await query;
 
     if (error) {
       console.error("Erro ao listar agenda:", error);
@@ -378,9 +402,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       .forEach(a => {
         const li = document.createElement("li");
         li.innerHTML = `
-          <strong>${a.cliente_nome}</strong><br>
-          ${a.data_agendamento} às ${a.hora}<br>
-          Serviço: ${servicoMap[a.servico_id] || "-"}
+          <div>
+            <strong>${a.cliente_nome}</strong>
+            ${a.data_agendamento} às ${a.hora}<br>
+            Serviço: ${servicoMap[a.servico_id] || "-"}
+          </div>
+          <button class="btn-delete" onclick="excluirAgendamento('${a.id}')">Excluir</button>
         `;
         lista.appendChild(li);
       });

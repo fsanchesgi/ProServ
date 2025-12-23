@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const { data: servicos, error: servicosError } = await supabase
       .from("servicos")
-      .select("id, nome")
+      .select("id, nome, duracao_minutos, valor")
       .eq("user_id", user.id)
       .order("nome");
 
@@ -121,6 +121,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     servicos.forEach(s => {
       const opt = document.createElement("option");
       opt.value = s.id;
+      opt.dataset.duracao = s.duracao_minutos;
+      opt.dataset.valor = s.valor;
       opt.textContent = s.nome;
       servicoSelect.appendChild(opt);
     });
@@ -138,7 +140,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   /* =========================
-     SALVAR AGENDA
+     SALVAR AGENDA COM VERIFICAÇÃO DE DUPLICIDADE
   ========================= */
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -154,6 +156,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       msg.style.color = "red";
       return;
     }
+
+    // ======== VERIFICA DUPLICIDADE ========
+    const { data: existente, error: checkError } = await supabase
+      .from("agendamentos")
+      .select("id")
+      .eq("usuario_id", user.id)
+      .eq("data_agendamento", data_agendamento)
+      .eq("hora", hora)
+      .single();
+
+    if (checkError && checkError.code !== "PGRST116") {
+      console.error("Erro ao checar duplicidade:", checkError);
+      msg.textContent = "Erro ao salvar atendimento.";
+      msg.style.color = "red";
+      return;
+    }
+
+    if (existente) {
+      msg.textContent = "Já existe um atendimento neste horário!";
+      msg.style.color = "red";
+      return;
+    }
+    // ======================================
 
     const option = servicoSelect.selectedOptions[0];
     const duracao_minutos = Number(option.dataset.duracao || 0);
@@ -222,9 +247,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Carrega agenda ao abrir a página
   carregarAgenda();
 
-}); // <-- FECHA o DOMContentLoaded corretamente
+});
 </script>
-
 
 </body>
 </html>

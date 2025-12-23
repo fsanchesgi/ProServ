@@ -164,7 +164,6 @@
 
   <div class="cards-grid">
 
-    <!-- FORMULÁRIO -->
     <div class="dashboard-card">
       <h3>Novo Atendimento</h3>
       <form id="agenda-form">
@@ -202,7 +201,6 @@
       </form>
     </div>
 
-    <!-- LISTAGEM -->
     <div class="dashboard-card">
       <h3>Atendimentos</h3>
       <ul id="lista" class="agenda-list"></ul>
@@ -218,8 +216,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
   const lista = document.getElementById("lista");
-  const form = document.getElementById("agenda-form");
-  const msg = document.getElementById("msg");
+  const servicoSelect = document.getElementById("servico");
 
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) {
@@ -232,6 +229,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     await supabase.auth.signOut();
     location.href = "index.html";
   };
+
+  /* 🔹 CARREGAR SERVIÇOS (CORREÇÃO DO DROPDOWN) */
+  async function carregarServicos() {
+    const { data, error } = await supabase
+      .from("servicos")
+      .select("id, nome")
+      .eq("usuario_id", user.id)
+      .order("nome");
+
+    if (error) {
+      console.error("Erro ao carregar serviços:", error);
+      return;
+    }
+
+    servicoSelect.innerHTML = "<option value=''>Selecione</option>";
+
+    data.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.nome;
+      servicoSelect.appendChild(opt);
+    });
+  }
 
   function formatarDataHora(dataISO, hora) {
     const d = new Date(dataISO);
@@ -246,16 +266,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function carregarAgenda() {
     lista.innerHTML = "";
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("agendamentos")
       .select("*")
       .eq("usuario_id", user.id)
       .order("data_agendamento");
-
-    if (error) {
-      console.error(error);
-      return;
-    }
 
     data.forEach(a => {
       lista.innerHTML += `
@@ -263,50 +278,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           <strong>${a.cliente_nome}</strong>
           <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
           <small>Lembrete: ${textoLembrete(a.lembrete_horas)}</small>
-
-          <div class="actions">
-            ${a.status === "pendente"
-              ? `<button class="btn-finalizar">Finalizar</button>`
-              : ""}
-            <button class="btn-editar">Alterar</button>
-            <button class="btn-excluir">Excluir</button>
-          </div>
         </li>
       `;
     });
   }
 
-  /* SALVAR AGENDAMENTO */
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    msg.textContent = "";
-
-    const { error } = await supabase
-      .from("agendamentos")
-      .insert({
-        usuario_id: user.id,
-        cliente_nome: document.getElementById("cliente").value,
-        servico_id: document.getElementById("servico").value,
-        data_agendamento: document.getElementById("data").value,
-        hora: document.getElementById("hora").value,
-        lembrete_horas: document.getElementById("lembrete").value,
-        status: "pendente"
-      });
-
-    if (error) {
-      msg.textContent = "Erro ao salvar agendamento";
-      msg.style.color = "red";
-      console.error(error);
-      return;
-    }
-
-    form.reset();
-    msg.textContent = "Agendamento salvo com sucesso!";
-    msg.style.color = "green";
-    carregarAgenda();
-  });
-
-  carregarAgenda();
+  /* 🔹 CHAMADAS */
+  await carregarServicos();
+  await carregarAgenda();
 });
 </script>
 

@@ -76,174 +76,99 @@
 <script src="./supabase.js"></script>
 <script src="./protect.js"></script>
 
-<script>
-const form = document.getElementById("agenda-form");
-const lista = document.getElementById("lista-agenda");
-const msg = document.getElementById("msg");
-const selectServico = document.getElementById("servico");
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-let user = null;
+  const supabaseUrl = "https://uqwbduinwugaqexsvkxc.supabase.co";
+  const supabaseAnonKey = "SUA_ANON_KEY_AQUI"; // mantenha sua chave válida
 
-/* 🔐 iniciar */
-document.addEventListener("DOMContentLoaded", async () => {
-  const { data, error } = await supabase.auth.getUser();
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-  if (error || !data.user) {
-    console.error("Usuário não autenticado");
-    return;
-  }
+  document.addEventListener("DOMContentLoaded", async () => {
 
-  user = data.user;
-  await carregarServicos();
-  await carregarAgenda();
-});
+    /* =========================
+       LOGOUT
+    ========================= */
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        await supabase.auth.signOut();
+        window.location.href = "login.html";
+      });
+    }
 
-/* 🔽 carregar serviços */
-async function carregarServicos() {
-  selectServico.innerHTML = `<option value="">Selecione o serviço</option>`;
+    /* =========================
+       CARREGAR SERVIÇOS (DROPDOWN)
+    ========================= */
+    const servicoSelect = document.getElementById("servico");
 
-  const { data, error } = await supabase
-    .from("servicos")
-    .select("id, nome, duracao_minutos, valor")
-    .eq("user_id", user.id)
-    .eq("ativo", true)
-    .order("nome");
+    try {
+      const { data: servicos, error } = await supabase
+        .from("servicos")
+        .select("id, nome")
+        .order("nome");
 
-  if (error) {
-    console.error(error.message);
-    return;
-  }
+      if (error) throw error;
 
-  data.forEach(s => {
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.dataset.duracao = s.duracao_minutos;
-    opt.dataset.valor = s.valor;
-    opt.textContent = `${s.nome} (${s.duracao_minutos} min) - R$ ${s.valor}`;
-    selectServico.appendChild(opt);
-  });
-}
+      servicoSelect.innerHTML = `<option value="">Selecione o serviço</option>`;
 
-/* 💾 salvar atendimento */
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+      servicos.forEach(servico => {
+        const option = document.createElement("option");
+        option.value = servico.id;
+        option.textContent = servico.nome;
+        servicoSelect.appendChild(option);
+      });
 
-  const cliente = document.getElementById("cliente").value;
-  const option = selectServico.selectedOptions[0];
-  const dataAg = document.getElementById("data").value;
-  const horaAg = document.getElementById("hora").value;
+    } catch (err) {
+      console.error("Erro ao carregar serviços:", err);
+    }
 
-  if (!option) {
-    msg.textContent = "Selecione um serviço válido";
-    msg.style.color = "red";
-    return;
-  }
+    /* =========================
+       SALVAR AGENDA
+    ========================= */
+    const form = document.getElementById("agenda-form");
+    const msg = document.getElementById("msg");
 
-  const servicoId = option.value;
-  const valor = Number(option.dataset.valor);
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.textContent = "";
 
-  msg.textContent = "Salvando...";
+      const cliente = document.getElementById("cliente").value.trim();
+      const servico_id = document.getElementById("servico").value;
+      const data = document.getElementById("data").value;
+      const hora = document.getElementById("hora").value;
 
-  /* 1️⃣ CRIAR AGENDA */
-  const { data: agenda, error: agendaError } = await supabase
-    .from("agenda")
-    .insert({
-      user_id: user.id,
-      servico_id: servicoId,
-      cliente_nome: cliente,
-      data: dataAg,
-      hora: horaAg,
-      valor,
-      status: "agendado"
-    })
-    .select("id")
-    .single();
+      if (!cliente || !servico_id || !data || !hora) {
+        msg.textContent = "Preencha todos os campos.";
+        return;
+      }
 
-  if (agendaError || !agenda?.id) {
-    console.error("Erro ao criar agenda:", agendaError);
-    msg.textContent = "Erro ao salvar agenda";
-    msg.style.color = "red";
-    return; // ⛔ IMPEDIDO de criar financeiro
-  }
+      const { data: userData } = await supabase.auth.getUser();
+      const user_id = userData.user.id;
 
-  /* 2️⃣ CRIAR FINANCEIRO (SÓ SE AGENDA EXISTE) */
-  const { error: financeiroError } = await supabase
-    .from("financeiro")
-    .insert({
-      agenda_id: agenda.id, // ✅ GARANTIDO EXISTIR
-      user_id: user.id,
-      valor,
-      status: "pendente"
+      const { error } = await supabase.from("agenda").insert([
+        {
+          cliente,
+          servico_id,
+          data,
+          hora,
+          user_id
+        }
+      ]);
+
+      if (error) {
+        console.error("Erro ao salvar agenda:", error);
+        msg.textContent = "Erro ao salvar atendimento.";
+        return;
+      }
+
+      msg.textContent = "Atendimento salvo com sucesso!";
+      form.reset();
     });
 
-  if (financeiroError) {
-    console.error("Erro ao criar financeiro:", financeiroError);
-    msg.textContent = "Agenda salva, erro no financeiro";
-    msg.style.color = "orange";
-    return;
-  }
-
-  msg.textContent = "Atendimento salvo com sucesso!";
-  msg.style.color = "green";
-  form.reset();
-  carregarAgenda();
-});
-
-
-  // 2️⃣ Criar financeiro vinculado
-  const { error: financeiroError } = await supabase
-    .from("financeiro")
-    .insert({
-      agenda_id: agenda.id,
-      user_id: user.id,
-      valor,
-      status: "pendente"
-    });
-
-  if (financeiroError) {
-    msg.textContent = financeiroError.message;
-    msg.style.color = "red";
-    return;
-  }
-
-  msg.textContent = "Atendimento salvo com sucesso!";
-  msg.style.color = "green";
-  form.reset();
-  carregarAgenda();
-});
-
-/* 📋 listar agenda */
-async function carregarAgenda() {
-  lista.innerHTML = "";
-
-  const { data, error } = await supabase
-    .from("agenda")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("data", { ascending: true });
-
-  if (error) {
-    console.error(error.message);
-    return;
-  }
-
-  data.forEach(a => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <strong>${a.cliente}</strong><br>
-      ${a.data} às ${a.hora}<br>
-      Duração: ${a.duracao_minutos} min
-    `;
-    lista.appendChild(li);
   });
-}
-
-/* 🚪 logout */
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await supabase.auth.signOut();
-  window.location.href = "index.html";
-});
 </script>
+
 
 
 </body>

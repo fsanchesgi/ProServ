@@ -146,18 +146,21 @@ form.addEventListener("submit", async (e) => {
   msg.style.color = "#000";
 
   // 1️⃣ Criar agenda
-  const { data: agenda, error: agendaError } = await supabase
-    .from("agenda")
-    .insert({
-      user_id: user.id,
-      cliente_nome: cliente,
-      data: dataAg,
-      hora: horaAg,
-      valor,
-      status: "agendado"
-    })
-    .select()
-    .single();
+  const servicoId = option.value;
+
+const { data: agenda, error: agendaError } = await supabase
+  .from("agenda")
+  .insert({
+    user_id: user.id,
+    servico_id: servicoId,   // ✅ OBRIGATÓRIO
+    cliente_nome: cliente,
+    data: dataAg,
+    hora: horaAg,
+    valor,
+    status: "agendado"
+  })
+  .select()
+  .single();
 
   if (agendaError) {
     msg.textContent = agendaError.message;

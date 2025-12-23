@@ -84,8 +84,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // USUÁRIO LOGADO
   const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
+  if (authError || !authData.user || !authData.user.id) {
     console.error("Usuário não autenticado");
+    msg.textContent = "Usuário não autenticado ou sessão expirada.";
+    msg.style.color = "red";
     return;
   }
   const user = authData.user;
@@ -121,10 +123,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     servicoSelect.innerHTML = `<option value="">Erro ao carregar serviços</option>`;
   }
 
-  // SALVAR AGENDA + FINANCEIRO
+  // SALVAR AGENDA
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     msg.textContent = "";
+
+    if (!user || !user.id) {
+      msg.textContent = "Usuário não autenticado.";
+      msg.style.color = "red";
+      return;
+    }
 
     const cliente_nome = document.getElementById("cliente").value.trim();
     const servico_id = servicoSelect.value;
@@ -143,7 +151,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       // INSERIR AGENDAMENTO
-      const { data: novoAgendamento, error: agendamentoError } = await supabase
+      const { data: novoAgendamento, error: agendaError } = await supabase
         .from("agendamentos")
         .insert([{
           usuario_id: user.id,
@@ -151,21 +159,21 @@ document.addEventListener("DOMContentLoaded", async () => {
           servico_id,
           data_agendamento,
           hora,
-          duracao_minutos: duracao_minutos || 0,
-          valor: valor || 0,
+          duracao_minutos,
+          valor,
           status: "agendado"
         }])
         .select()
         .single();
 
-      if (agendamentoError) throw agendamentoError;
+      if (agendaError) throw agendaError;
 
-      // INSERIR NO FINANCEIRO AUTOMATICAMENTE
+      // INSERIR FINANCEIRO
       const { error: financeiroError } = await supabase
         .from("financeiro")
         .insert([{
           agenda_id: novoAgendamento.id,
-          user_id: user.id,   // <-- ajuste necessário
+          user_id: user.id,
           tipo: "receita",
           valor: valor || 0,
           status: "pendente"

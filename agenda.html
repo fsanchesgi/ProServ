@@ -24,7 +24,6 @@
 
     header .container {
       max-width: 100%;
-      margin: 0;
       padding: 0 2rem;
       display: flex;
       justify-content: space-between;
@@ -80,6 +79,32 @@
       box-shadow: 0 4px 12px rgba(0,0,0,.05);
     }
 
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      font-weight: 500;
+      display: block;
+      margin-bottom: .25rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: .5rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+    }
+
+    .btn-primary {
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      padding: .6rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
     .agenda-list {
       list-style: none;
       padding: 0;
@@ -93,21 +118,27 @@
       margin-bottom: .75rem;
     }
 
-    .actions button {
+    .actions {
       margin-top: .5rem;
+    }
+
+    .actions button {
+      margin-right: .5rem;
       border: none;
       padding: .4rem .75rem;
       border-radius: 6px;
       cursor: pointer;
       font-size: .85rem;
-      background: #2563eb;
       color: #fff;
     }
 
+    .btn-finalizar { background: #10b981; }
+    .btn-excluir { background: #ef4444; }
+    .btn-editar { background: #2563eb; }
+
     small {
-      color: #6b7280;
       display: block;
-      margin-top: .25rem;
+      color: #6b7280;
     }
   </style>
 </head>
@@ -132,10 +163,51 @@
   </div>
 
   <div class="cards-grid">
+
+    <!-- FORMULÁRIO -->
+    <div class="dashboard-card">
+      <h3>Novo Atendimento</h3>
+      <form id="agenda-form">
+        <div class="form-group">
+          <label>Cliente</label>
+          <input type="text" id="cliente" required>
+        </div>
+
+        <div class="form-group">
+          <label>Serviço</label>
+          <select id="servico" required></select>
+        </div>
+
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" id="data" required>
+        </div>
+
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="time" id="hora" required>
+        </div>
+
+        <div class="form-group">
+          <label>Lembrete</label>
+          <select id="lembrete">
+            <option value="0">Sem lembrete</option>
+            <option value="24">24 horas antes</option>
+            <option value="2">2 horas antes</option>
+          </select>
+        </div>
+
+        <button class="btn-primary" type="submit">Salvar</button>
+        <p id="msg"></p>
+      </form>
+    </div>
+
+    <!-- LISTAGEM -->
     <div class="dashboard-card">
       <h3>Atendimentos</h3>
       <ul id="lista" class="agenda-list"></ul>
     </div>
+
   </div>
 </section>
 
@@ -146,7 +218,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
   const lista = document.getElementById("lista");
-  const logoutBtn = document.getElementById("logoutBtn");
+  const form = document.getElementById("agenda-form");
 
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) {
@@ -155,25 +227,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   const user = auth.user;
 
-  logoutBtn.onclick = async () => {
+  document.getElementById("logoutBtn").onclick = async () => {
     await supabase.auth.signOut();
     location.href = "index.html";
   };
 
   function formatarDataHora(dataISO, hora) {
-    const data = new Date(dataISO);
-    const dia = String(data.getDate()).padStart(2, "0");
-    const mes = String(data.getMonth() + 1).padStart(2, "0");
-    const ano = data.getFullYear();
-
-    return `${dia}/${mes}/${ano} às ${hora.slice(0,5)}`;
+    const d = new Date(dataISO);
+    return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()} às ${hora.slice(0,5)}`;
   }
 
-  function textoLembrete(valor) {
-    if (!valor || valor === 0) return "Sem lembrete";
-    if (valor === 24) return "24 horas antes";
-    if (valor === 2) return "2 horas antes";
-    return `${valor} horas antes`;
+  function textoLembrete(v) {
+    if (!v || v == 0) return "Sem lembrete";
+    return v == 24 ? "24h antes" : "2h antes";
   }
 
   async function carregarAgenda() {
@@ -191,6 +257,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           <strong>${a.cliente_nome}</strong>
           <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
           <small>Lembrete: ${textoLembrete(a.lembrete_horas)}</small>
+
+          <div class="actions">
+            ${a.status === "pendente"
+              ? `<button class="btn-finalizar">Finalizar</button>`
+              : ""}
+            <button class="btn-editar">Alterar</button>
+            <button class="btn-excluir">Excluir</button>
+          </div>
         </li>
       `;
     });

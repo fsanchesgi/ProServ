@@ -4,14 +4,158 @@
   <meta charset="UTF-8">
   <title>ProServ | Agenda</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link rel="stylesheet" href="./style.css">
+
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      color: #111827;
+    }
+
+    header {
+      background: #111827;
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    header .container {
+      max-width: 100%;
+      margin: 0;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-right: 1.5rem;
+      font-weight: 500;
+    }
+
+    header nav a.active {
+      border-bottom: 2px solid #4f46e5;
+    }
+
+    header nav button {
+      background: #4f46e5;
+      border: none;
+      color: #fff;
+      padding: .5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .dashboard-page {
+      max-width: 1200px;
+      margin: 2.5rem auto;
+      padding: 0 2rem;
+    }
+
+    .dashboard-header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    .dashboard-header p {
+      margin: .25rem 0 2rem;
+      color: #6b7280;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+    }
+
+    .dashboard-card {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.05);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      font-weight: 500;
+      display: block;
+      margin-bottom: .25rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: .5rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+    }
+
+    .btn-primary {
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      padding: .6rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .agenda-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .agenda-list li {
+      background: #f3f4f6;
+      border-radius: 8px;
+      padding: .75rem 1rem;
+      margin-bottom: .75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .actions button {
+      margin-left: .5rem;
+      border: none;
+      padding: .4rem .75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .85rem;
+    }
+
+    .btn-finalizar {
+      background: #10b981;
+      color: #fff;
+    }
+
+    .btn-excluir {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+  </style>
 </head>
 
 <body>
 
 <header>
   <div class="container">
-    <img src="./images/logo.png" height="70">
+    <img src="./images/logo.png" height="80">
     <nav>
       <a href="dashboard.html">Dashboard</a>
       <a href="agenda.html" class="active">Agenda</a>
@@ -21,48 +165,50 @@
 </header>
 
 <section class="dashboard-page">
+  <div class="dashboard-header">
+    <h1>📅 Agenda</h1>
+    <p>Gerencie seus atendimentos</p>
+  </div>
 
   <div class="cards-grid">
-
-    <!-- FORM -->
     <div class="dashboard-card">
-      <h3 id="form-title">Novo Atendimento</h3>
-
+      <h3>Novo Atendimento</h3>
       <form id="agenda-form">
-        <input type="hidden" id="agenda_id">
+        <div class="form-group">
+          <label>Cliente</label>
+          <input type="text" id="cliente" required>
+        </div>
 
-        <label>Cliente</label>
-        <input id="cliente" required>
+        <div class="form-group">
+          <label>Serviço</label>
+          <select id="servico" required></select>
+        </div>
 
-        <label>Serviço</label>
-        <select id="servico" required></select>
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" id="data" required>
+        </div>
 
-        <label>Data</label>
-        <input type="date" id="data" required>
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="time" id="hora" required>
+        </div>
 
-        <label>Hora</label>
-        <input type="time" id="hora" required>
-
-        <label>Lembrete</label>
-        <select id="lembrete">
-          <option value="">Sem lembrete</option>
-          <option value="15">15 minutos</option>
-          <option value="30">30 minutos</option>
-          <option value="60">1 hora</option>
-        </select>
-
-        <br><br>
-        <button type="submit">Salvar</button>
+        <button class="btn-primary" type="submit">Salvar</button>
         <p id="msg"></p>
       </form>
     </div>
 
-    <!-- LISTA -->
     <div class="dashboard-card">
       <h3>Atendimentos</h3>
+
+      <div class="filter-bar">
+        <input type="text" id="filtro-cliente" placeholder="Buscar cliente">
+        <select id="filtro-servico"></select>
+      </div>
+
       <ul id="lista-agenda" class="agenda-list"></ul>
     </div>
-
   </div>
 </section>
 
@@ -74,83 +220,76 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const form = document.getElementById("agenda-form");
   const lista = document.getElementById("lista-agenda");
-  const agendaId = document.getElementById("agenda_id");
+  const servicoSelect = document.getElementById("servico");
+  const filtroCliente = document.getElementById("filtro-cliente");
+  const filtroServico = document.getElementById("filtro-servico");
   const msg = document.getElementById("msg");
 
   const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) {
+  const user = auth.user;
+
+  if (!user) {
     location.href = "index.html";
     return;
   }
-  const user = auth.user;
 
-  logoutBtn.onclick = async () => {
+  document.getElementById("logoutBtn").onclick = async () => {
     await supabase.auth.signOut();
     location.href = "index.html";
   };
 
-  // SERVIÇOS
   const { data: servicos } = await supabase
     .from("servicos")
     .select("*")
     .eq("user_id", user.id);
 
+  servicoSelect.innerHTML = `<option value="">Selecione</option>`;
+  filtroServico.innerHTML = `<option value="">Todos</option>`;
+
   servicos.forEach(s => {
-    servico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
+    servicoSelect.innerHTML += `<option value="${s.id}" data-valor="${s.valor}">${s.nome}</option>`;
+    filtroServico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
   });
 
-  // SALVAR / ATUALIZAR
   form.onsubmit = async e => {
     e.preventDefault();
 
-    const payload = {
+    const opt = servicoSelect.selectedOptions[0];
+
+    const { error } = await supabase.from("agendamentos").insert([{
       usuario_id: user.id,
       cliente_nome: cliente.value,
-      servico_id: servico.value,
+      servico_id: servicoSelect.value,
       data_agendamento: data.value,
       hora: hora.value,
-      lembrete_minutos: lembrete.value || null,
+      valor: opt.dataset.valor,
       status: "pendente"
-    };
-
-    let error;
-    if (agendaId.value) {
-      ({ error } = await supabase
-        .from("agendamentos")
-        .update(payload)
-        .eq("id", agendaId.value));
-    } else {
-      ({ error } = await supabase.from("agendamentos").insert([payload]));
-    }
+    }]);
 
     if (!error) {
+      msg.textContent = "Atendimento salvo com sucesso!";
       form.reset();
-      agendaId.value = "";
       carregarAgenda();
-    } else {
-      console.error(error);
-      msg.textContent = "Erro ao salvar.";
     }
   };
 
-  // EDITAR
-  window.editarAgendamento = async id => {
-    const { data } = await supabase
-      .from("agendamentos")
-      .select("*")
-      .eq("id", id)
-      .single();
+  window.finalizarAgendamento = async (id, valor) => {
+    await supabase.from("agendamentos")
+      .update({ status: "finalizado" })
+      .eq("id", id);
 
-    agendaId.value = data.id;
-    cliente.value = data.cliente_nome;
-    servico.value = data.servico_id;
-    data.value = data.data_agendamento;
-    hora.value = data.hora;
-    lembrete.value = data.lembrete_minutos || "";
+    await supabase.from("financeiro").insert([{
+      agenda_id: id,
+      user_id: user.id,
+      tipo: "receita",
+      valor,
+      status: "confirmado"
+    }]);
+
+    carregarAgenda();
   };
 
-  // EXCLUIR
-  window.excluirAgendamento = async id => {
+  window.excluirAgendamento = async (id) => {
     if (confirm("Excluir atendimento?")) {
       await supabase.from("agendamentos").delete().eq("id", id);
       carregarAgenda();
@@ -166,20 +305,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       .eq("usuario_id", user.id)
       .order("data_agendamento");
 
-    data.forEach(a => {
-      lista.innerHTML += `
-        <li>
-          <div>
-            <strong>${a.cliente_nome}</strong><br>
-            ${a.data_agendamento} ${a.hora}
-          </div>
-          <div>
-            <button onclick="editarAgendamento('${a.id}')">Alterar</button>
-            <button onclick="excluirAgendamento('${a.id}')">Excluir</button>
-          </div>
-        </li>`;
-    });
+    data
+      .filter(a => a.cliente_nome.toLowerCase().includes(filtroCliente.value.toLowerCase()))
+      .filter(a => filtroServico.value === "" || a.servico_id === filtroServico.value)
+      .forEach(a => {
+        lista.innerHTML += `
+          <li>
+            <div>
+              <strong>${a.cliente_nome}</strong><br>
+              ${a.data_agendamento} ${a.hora}
+            </div>
+            <div class="actions">
+              ${a.status === "pendente"
+                ? `<button class="btn-finalizar" onclick="finalizarAgendamento('${a.id}', ${a.valor})">Finalizar</button>`
+                : ""}
+              <button class="btn-excluir" onclick="excluirAgendamento('${a.id}')">Excluir</button>
+            </div>
+          </li>
+        `;
+      });
   }
+
+  filtroCliente.oninput = carregarAgenda;
+  filtroServico.onchange = carregarAgenda;
 
   carregarAgenda();
 });

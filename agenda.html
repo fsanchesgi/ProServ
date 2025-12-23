@@ -180,35 +180,39 @@ document.addEventListener("DOMContentLoaded", async () => {
      LISTAR AGENDA
   ========================= */
   async function carregarAgenda() {
-    lista.innerHTML = "";
+  lista.innerHTML = "";
 
-    const { data, error } = await supabase
-      .from("agenda")
-      .select(`
-        id,
-        cliente,
-        data,
-        hora,
-        servicos ( nome )
-      `)
-      .eq("user_id", user.id)
-      .order("data");
+  // Seleção simples, sem relação aninhada
+  const { data, error } = await supabase
+    .from("agenda")
+    .select("id, cliente, servico_id, data, hora")
+    .eq("user_id", user.id)
+    .order("data");
 
-    if (error) {
-      console.error("Erro ao listar agenda:", error);
-      return;
-    }
-
-    data.forEach(a => {
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <strong>${a.cliente}</strong><br>
-        ${a.data} às ${a.hora}<br>
-        Serviço: ${a.servicos?.nome || "-"}
-      `;
-      lista.appendChild(li);
-    });
+  if (error) {
+    console.error("Erro ao listar agenda:", error);
+    return;
   }
+
+  // Para exibir o nome do serviço, vamos buscar localmente
+  const { data: servicos, error: servicosError } = await supabase
+    .from("servicos")
+    .select("id, nome")
+    .eq("user_id", user.id);
+
+  const servicoMap = {};
+  servicos?.forEach(s => servicoMap[s.id] = s.nome);
+
+  data.forEach(a => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <strong>${a.cliente}</strong><br>
+      ${a.data} às ${a.hora}<br>
+      Serviço: ${servicoMap[a.servico_id] || "-"}
+    `;
+    lista.appendChild(li);
+  });
+}
 
   carregarAgenda();
 

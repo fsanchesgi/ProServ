@@ -5,92 +5,6 @@
   <title>ProServ | Agenda</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="./style.css">
-
-  <style>
-    body {
-      font-family: Inter, sans-serif;
-      background: #f9fafb;
-      margin: 0;
-      color: #111827;
-    }
-
-    header {
-      background: #111827;
-      padding: 1rem 0;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-
-    header .container {
-      max-width: 100%;
-      padding: 0 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    header nav a {
-      color: #fff;
-      margin-right: 1.5rem;
-      text-decoration: none;
-    }
-
-    header nav a.active {
-      border-bottom: 2px solid #4f46e5;
-    }
-
-    header nav button {
-      background: #4f46e5;
-      border: none;
-      color: #fff;
-      padding: .5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .dashboard-page {
-      max-width: 1200px;
-      margin: 2.5rem auto;
-      padding: 0 2rem;
-    }
-
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 2rem;
-    }
-
-    .dashboard-card {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,.05);
-    }
-
-    .agenda-list li {
-      background: #f3f4f6;
-      border-radius: 8px;
-      padding: .75rem 1rem;
-      margin-bottom: .75rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .actions button {
-      margin-left: .4rem;
-      border: none;
-      padding: .4rem .75rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: .85rem;
-    }
-
-    .btn-finalizar { background:#10b981; color:#fff; }
-    .btn-editar { background:#3b82f6; color:#fff; }
-    .btn-excluir { background:#ef4444; color:#fff; }
-  </style>
 </head>
 
 <body>
@@ -110,7 +24,7 @@
 
   <div class="cards-grid">
 
-    <!-- FORMULÁRIO -->
+    <!-- FORM -->
     <div class="dashboard-card">
       <h3 id="form-title">Novo Atendimento</h3>
 
@@ -129,7 +43,7 @@
         <label>Hora</label>
         <input type="time" id="hora" required>
 
-        <label>Lembrete (minutos antes)</label>
+        <label>Lembrete</label>
         <select id="lembrete">
           <option value="">Sem lembrete</option>
           <option value="15">15 minutos</option>
@@ -138,7 +52,7 @@
         </select>
 
         <br><br>
-        <button class="btn-editar" type="submit" id="btnSalvar">Salvar</button>
+        <button type="submit">Salvar</button>
         <p id="msg"></p>
       </form>
     </div>
@@ -159,26 +73,33 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
   const form = document.getElementById("agenda-form");
-  const agendaIdInput = document.getElementById("agenda_id");
+  const lista = document.getElementById("lista-agenda");
+  const agendaId = document.getElementById("agenda_id");
   const msg = document.getElementById("msg");
 
   const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) {
+    location.href = "index.html";
+    return;
+  }
   const user = auth.user;
 
-  document.getElementById("logoutBtn").onclick = async () => {
+  logoutBtn.onclick = async () => {
     await supabase.auth.signOut();
     location.href = "index.html";
   };
 
+  // SERVIÇOS
   const { data: servicos } = await supabase
     .from("servicos")
     .select("*")
     .eq("user_id", user.id);
 
   servicos.forEach(s => {
-    servico.innerHTML += `<option value="${s.id}" data-valor="${s.valor}">${s.nome}</option>`;
+    servico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
   });
 
+  // SALVAR / ATUALIZAR
   form.onsubmit = async e => {
     e.preventDefault();
 
@@ -193,33 +114,51 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     let error;
-    if (agendaIdInput.value) {
+    if (agendaId.value) {
       ({ error } = await supabase
         .from("agendamentos")
         .update(payload)
-        .eq("id", agendaIdInput.value));
+        .eq("id", agendaId.value));
     } else {
       ({ error } = await supabase.from("agendamentos").insert([payload]));
     }
 
     if (!error) {
       form.reset();
-      agendaIdInput.value = "";
+      agendaId.value = "";
+      carregarAgenda();
+    } else {
+      console.error(error);
+      msg.textContent = "Erro ao salvar.";
+    }
+  };
+
+  // EDITAR
+  window.editarAgendamento = async id => {
+    const { data } = await supabase
+      .from("agendamentos")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    agendaId.value = data.id;
+    cliente.value = data.cliente_nome;
+    servico.value = data.servico_id;
+    data.value = data.data_agendamento;
+    hora.value = data.hora;
+    lembrete.value = data.lembrete_minutos || "";
+  };
+
+  // EXCLUIR
+  window.excluirAgendamento = async id => {
+    if (confirm("Excluir atendimento?")) {
+      await supabase.from("agendamentos").delete().eq("id", id);
       carregarAgenda();
     }
   };
 
-  window.editarAgendamento = a => {
-    agendaIdInput.value = a.id;
-    cliente.value = a.cliente_nome;
-    servico.value = a.servico_id;
-    data.value = a.data_agendamento;
-    hora.value = a.hora;
-    lembrete.value = a.lembrete_minutos || "";
-  };
-
   async function carregarAgenda() {
-    lista-agenda.innerHTML = "";
+    lista.innerHTML = "";
 
     const { data } = await supabase
       .from("agendamentos")
@@ -228,26 +167,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       .order("data_agendamento");
 
     data.forEach(a => {
-      lista-agenda.innerHTML += `
+      lista.innerHTML += `
         <li>
           <div>
             <strong>${a.cliente_nome}</strong><br>
             ${a.data_agendamento} ${a.hora}
           </div>
-          <div class="actions">
-            <button class="btn-editar" onclick='editarAgendamento(${JSON.stringify(a)})'>Alterar</button>
-            <button class="btn-excluir" onclick="excluirAgendamento('${a.id}')">Excluir</button>
+          <div>
+            <button onclick="editarAgendamento('${a.id}')">Alterar</button>
+            <button onclick="excluirAgendamento('${a.id}')">Excluir</button>
           </div>
         </li>`;
     });
   }
-
-  window.excluirAgendamento = async id => {
-    if (confirm("Excluir atendimento?")) {
-      await supabase.from("agendamentos").delete().eq("id", id);
-      carregarAgenda();
-    }
-  };
 
   carregarAgenda();
 });

@@ -24,7 +24,6 @@
 
     header .container {
       max-width: 100%;
-      margin: 0;
       padding: 0 2rem;
       display: flex;
       justify-content: space-between;
@@ -190,8 +189,12 @@
 
         <!-- 🔔 LEMBRETE -->
         <div class="form-group">
-          <label>Lembrete (opcional)</label>
-          <input type="datetime-local" id="lembrete">
+          <label>Lembrete</label>
+          <select id="lembrete">
+            <option value="0">Sem lembrete</option>
+            <option value="24">24 horas antes</option>
+            <option value="2">2 horas antes</option>
+          </select>
         </div>
 
         <button class="btn-primary" type="submit">Salvar</button>
@@ -246,80 +249,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     filtroServico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
   });
 
+  function calcularLembrete(data, hora, horasAntes) {
+    if (horasAntes === 0) return null;
+    const dt = new Date(`${data}T${hora}`);
+    dt.setHours(dt.getHours() - horasAntes);
+    return dt.toISOString();
+  }
+
   form.onsubmit = async e => {
     e.preventDefault();
 
-    const editId = form.dataset.editando;
     const opt = servicoSelect.selectedOptions[0];
+    const horasAntes = Number(lembrete.value);
 
-    const payload = {
+    const lembreteEm = calcularLembrete(data.value, hora.value, horasAntes);
+
+    await supabase.from("agendamentos").insert([{
+      usuario_id: user.id,
       cliente_nome: cliente.value,
       servico_id: servicoSelect.value,
       data_agendamento: data.value,
       hora: hora.value,
-      lembrete_em: lembrete.value || null
-    };
-
-    if (editId) {
-      await supabase.from("agendamentos").update(payload).eq("id", editId);
-      delete form.dataset.editando;
-    } else {
-      await supabase.from("agendamentos").insert([{
-        usuario_id: user.id,
-        ...payload,
-        valor: opt.dataset.valor,
-        status: "pendente",
-        lembrete_enviado: false
-      }]);
-    }
+      valor: opt.dataset.valor,
+      status: "pendente",
+      lembrete_em: lembreteEm,
+      lembrete_enviado: false
+    }]);
 
     form.reset();
     msg.textContent = "Atendimento salvo com sucesso!";
     carregarAgenda();
-  };
-
-  window.alterarAgendamento = async (id) => {
-    const { data } = await supabase
-      .from("agendamentos")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (!data || data.status === "finalizado") {
-      alert("Agendamentos finalizados não podem ser alterados.");
-      return;
-    }
-
-    cliente.value = data.cliente_nome;
-    servicoSelect.value = data.servico_id;
-    data.value = data.data_agendamento;
-    hora.value = data.hora;
-    lembrete.value = data.lembrete_em ? data.lembrete_em.substring(0,16) : "";
-
-    form.dataset.editando = id;
-  };
-
-  window.finalizarAgendamento = async (id, valor) => {
-    await supabase.from("agendamentos")
-      .update({ status: "finalizado" })
-      .eq("id", id);
-
-    await supabase.from("financeiro").insert([{
-      agenda_id: id,
-      user_id: user.id,
-      tipo: "receita",
-      valor,
-      status: "confirmado"
-    }]);
-
-    carregarAgenda();
-  };
-
-  window.excluirAgendamento = async (id) => {
-    if (confirm("Excluir atendimento?")) {
-      await supabase.from("agendamentos").delete().eq("id", id);
-      carregarAgenda();
-    }
   };
 
   async function carregarAgenda() {
@@ -340,18 +299,34 @@ document.addEventListener("DOMContentLoaded", async () => {
             <div>
               <strong>${a.cliente_nome}</strong><br>
               ${a.data_agendamento} ${a.hora}
-              ${a.lembrete_em ? `<br>🔔 Lembrete: ${new Date(a.lembrete_em).toLocaleString()}` : ""}
+              ${a.lembrete_em ? `<br>🔔 Lembrete programado` : ""}
             </div>
             <div class="actions">
-              <button class="btn-alterar" onclick="alterarAgendamento('${a.id}')">Alterar</button>
-              ${a.status === "pendente"
-                ? `<button class="btn-finalizar" onclick="finalizarAgendamento('${a.id}', ${a.valor})">Finalizar</button>`
-                : ""}
+              <button class="btn-finalizar" onclick="finalizarAgendamento('${a.id}', ${a.valor})">Finalizar</button>
               <button class="btn-excluir" onclick="excluirAgendamento('${a.id}')">Excluir</button>
             </div>
           </li>`;
       });
   }
+
+  window.finalizarAgendamento = async (id, valor) => {
+    await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id);
+    await supabase.from("financeiro").insert([{
+      agenda_id: id,
+      user_id: user.id,
+      tipo: "receita",
+      valor,
+      status: "confirmado"
+    }]);
+    carregarAgenda();
+  };
+
+  window.excluirAgendamento = async (id) => {
+    if (confirm("Excluir atendimento?")) {
+      await supabase.from("agendamentos").delete().eq("id", id);
+      carregarAgenda();
+    }
+  };
 
   filtroCliente.oninput = carregarAgenda;
   filtroServico.onchange = carregarAgenda;

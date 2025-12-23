@@ -139,34 +139,56 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  const duracao = Number(option.dataset.duracao);
+  const servicoId = option.value;
   const valor = Number(option.dataset.valor);
 
   msg.textContent = "Salvando...";
-  msg.style.color = "#000";
 
-  // 1️⃣ Criar agenda
-  const servicoId = option.value;
+  /* 1️⃣ CRIAR AGENDA */
+  const { data: agenda, error: agendaError } = await supabase
+    .from("agenda")
+    .insert({
+      user_id: user.id,
+      servico_id: servicoId,
+      cliente_nome: cliente,
+      data: dataAg,
+      hora: horaAg,
+      valor,
+      status: "agendado"
+    })
+    .select("id")
+    .single();
 
-const { data: agenda, error: agendaError } = await supabase
-  .from("agenda")
-  .insert({
-    user_id: user.id,
-    servico_id: servicoId,   // ✅ OBRIGATÓRIO
-    cliente_nome: cliente,
-    data: dataAg,
-    hora: horaAg,
-    valor,
-    status: "agendado"
-  })
-  .select()
-  .single();
-
-  if (agendaError) {
-    msg.textContent = agendaError.message;
+  if (agendaError || !agenda?.id) {
+    console.error("Erro ao criar agenda:", agendaError);
+    msg.textContent = "Erro ao salvar agenda";
     msg.style.color = "red";
+    return; // ⛔ IMPEDIDO de criar financeiro
+  }
+
+  /* 2️⃣ CRIAR FINANCEIRO (SÓ SE AGENDA EXISTE) */
+  const { error: financeiroError } = await supabase
+    .from("financeiro")
+    .insert({
+      agenda_id: agenda.id, // ✅ GARANTIDO EXISTIR
+      user_id: user.id,
+      valor,
+      status: "pendente"
+    });
+
+  if (financeiroError) {
+    console.error("Erro ao criar financeiro:", financeiroError);
+    msg.textContent = "Agenda salva, erro no financeiro";
+    msg.style.color = "orange";
     return;
   }
+
+  msg.textContent = "Atendimento salvo com sucesso!";
+  msg.style.color = "green";
+  form.reset();
+  carregarAgenda();
+});
+
 
   // 2️⃣ Criar financeiro vinculado
   const { error: financeiroError } = await supabase

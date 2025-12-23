@@ -6,74 +6,117 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="./style.css">
   <style>
-    .dashboard-page { padding: 2rem; max-width: 1200px; margin: auto; }
-    .dashboard-header h1 { margin-bottom: 0.5rem; }
-    .cards { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
-    .card { flex: 1 1 200px; background: #fff; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 1rem; }
-    .card h3 { margin-bottom: 0.5rem; font-size: 1rem; color: #555; }
-    .card p { font-size: 1.5rem; font-weight: bold; margin: 0; }
-    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
-    th { background: #f3f4f6; color: #111827; }
-    button.delete-btn { background: #ef4444; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
-    button.delete-btn:hover { background: #dc2626; }
-    .search-bar { margin-bottom: 1rem; }
-    .search-bar input { padding: 0.5rem; width: 250px; border-radius: 4px; border: 1px solid #ccc; }
+    /* Header mais compacto */
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 2rem;
+      background: #111827;
+      color: #fff;
+    }
+    header nav a {
+      margin-right: 1rem;
+      font-size: 0.9rem;
+      color: #fff;
+      text-decoration: none;
+    }
+    header nav a.active {
+      text-decoration: underline;
+    }
+    header nav button {
+      padding: 0.25rem 0.75rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    /* Cards financeiros */
+    .cards {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: #1f2937;
+      color: #fff;
+      padding: 1rem 1.5rem;
+      border-radius: 0.5rem;
+      flex: 1 1 200px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .card h3 {
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+    .card p {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    /* Lista agendamentos */
+    .agenda-list li {
+      background: #f3f4f6;
+      margin-bottom: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .agenda-list button {
+      padding: 0.25rem 0.5rem;
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      border-radius: 0.25rem;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
 <header>
   <div class="container">
-    <img src="./images/logo.png" alt="ProServ Logo" height="80">
+    <img src="./images/logo.png" alt="ProServ Logo" style="height:40px;">
     <nav>
       <a href="dashboard.html">Dashboard</a>
-      <a href="agenda.html">Agenda</a>
-      <a href="dashboard-financeiro.html" class="active">Financeiro</a>
+      <a href="agenda.html" class="active">Agenda</a>
+      <a href="financeiro.html" class="active">Financeiro</a>
       <button id="logoutBtn">Sair</button>
     </nav>
   </div>
 </header>
 
 <section class="dashboard-page">
-  <div class="dashboard-header">
-    <h1>💰 Financeiro</h1>
-    <p>Controle suas receitas e despesas</p>
-  </div>
+  <div class="container">
 
-  <div class="cards">
-    <div class="card">
-      <h3>Total Receitas</h3>
-      <p id="total-receitas">R$ 0,00</p>
+    <div class="dashboard-header">
+      <h1>💰 Financeiro</h1>
+      <p>Resumo financeiro baseado em agendamentos e despesas</p>
     </div>
-    <div class="card">
-      <h3>Total Despesas</h3>
-      <p id="total-despesas">R$ 0,00</p>
-    </div>
-    <div class="card">
-      <h3>Saldo</h3>
-      <p id="saldo">R$ 0,00</p>
-    </div>
-  </div>
 
-  <div class="search-bar">
-    <input type="text" id="filtro-financeiro" placeholder="Pesquisar lançamento...">
-  </div>
+    <div class="cards">
+      <div class="card">
+        <h3>Total Receitas</h3>
+        <p id="totalReceitas">R$ 0,00</p>
+      </div>
+      <div class="card">
+        <h3>Total Despesas</h3>
+        <p id="totalDespesas">R$ 0,00</p>
+      </div>
+      <div class="card">
+        <h3>Saldo</h3>
+        <p id="saldo">R$ 0,00</p>
+      </div>
+    </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Tipo</th>
-        <th>Valor</th>
-        <th>Status</th>
-        <th>Ação</th>
-      </tr>
-    </thead>
-    <tbody id="tabela-financeiro">
-      <!-- Lançamentos serão carregados aqui -->
-    </tbody>
-  </table>
+    <div class="dashboard-card">
+      <h3>Agendamentos</h3>
+      <ul id="lista-agenda" class="agenda-list"></ul>
+    </div>
+
+  </div>
 </section>
 
 <footer style="background:#111827; color:#9ca3af; text-align:center; padding:2rem;">
@@ -85,90 +128,87 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
-  const tabela = document.getElementById("tabela-financeiro");
-  const filtroInput = document.getElementById("filtro-financeiro");
-  const totalReceitas = document.getElementById("total-receitas");
-  const totalDespesas = document.getElementById("total-despesas");
+
+  const logoutBtn = document.getElementById("logoutBtn");
+  const lista = document.getElementById("lista-agenda");
+  const totalReceitas = document.getElementById("totalReceitas");
+  const totalDespesas = document.getElementById("totalDespesas");
   const saldo = document.getElementById("saldo");
 
-  // Logout
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
+  logoutBtn.addEventListener("click", async () => {
     await supabase.auth.signOut();
     window.location.href = "index.html";
   });
 
-  // Usuário logado
   const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    console.error("Usuário não autenticado");
-    return;
-  }
+  if (authError || !authData.user) return;
   const user = authData.user;
 
-  // Carregar lançamentos financeiros
+  // CARREGAR FINANCEIRO
   async function carregarFinanceiro() {
-    tabela.innerHTML = "";
-
-    let { data, error } = await supabase
-      .from("financeiro")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Erro ao carregar financeiro:", error);
-      return;
-    }
+    // Receitas: somar valores dos agendamentos agendados ou finalizados
+    const { data: agendamentos } = await supabase
+      .from("agendamentos")
+      .select("id, valor, status")
+      .eq("usuario_id", user.id)
+      .in("status", ["agendado", "finalizado"]);
 
     let totalR = 0;
+    agendamentos?.forEach(a => totalR += a.valor || 0);
+
+    // Despesas: tabela financeiro
+    const { data: despesas } = await supabase
+      .from("financeiro")
+      .select("valor")
+      .eq("user_id", user.id)
+      .eq("tipo", "despesa");
+
     let totalD = 0;
-
-    data.forEach(lancamento => {
-      if (lancamento.tipo === "receita") totalR += lancamento.valor;
-      else totalD += lancamento.valor;
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${new Date(lancamento.created_at).toLocaleDateString()}</td>
-        <td>${lancamento.tipo}</td>
-        <td>R$ ${lancamento.valor.toFixed(2)}</td>
-        <td>${lancamento.status}</td>
-        <td><button class="delete-btn" onclick="excluirLancamento('${lancamento.id}')">Excluir</button></td>
-      `;
-      tabela.appendChild(tr);
-    });
+    despesas?.forEach(d => totalD += d.valor || 0);
 
     totalReceitas.textContent = `R$ ${totalR.toFixed(2)}`;
     totalDespesas.textContent = `R$ ${totalD.toFixed(2)}`;
     saldo.textContent = `R$ ${(totalR - totalD).toFixed(2)}`;
+
+    carregarAgenda();
   }
 
-  // Excluir lançamento
-  window.excluirLancamento = async function(id) {
-    if (!confirm("Deseja realmente excluir este lançamento?")) return;
+  // LISTAR AGENDA
+  async function carregarAgenda() {
+    lista.innerHTML = "";
 
-    const { error } = await supabase
-      .from("financeiro")
-      .delete()
-      .eq("id", id);
+    const { data, error } = await supabase
+      .from("agendamentos")
+      .select("id, cliente_nome, servico_id, data_agendamento, hora, status, valor")
+      .eq("usuario_id", user.id)
+      .order("data_agendamento");
 
-    if (error) {
-      console.error("Erro ao excluir lançamento:", error);
-      alert("Erro ao excluir lançamento.");
-      return;
-    }
+    if (error) return;
 
-    carregarFinanceiro();
-  };
-
-  // Filtro de pesquisa
-  filtroInput.addEventListener("input", () => {
-    const filtro = filtroInput.value.toLowerCase();
-    const linhas = tabela.querySelectorAll("tr");
-    linhas.forEach(tr => {
-      tr.style.display = tr.textContent.toLowerCase().includes(filtro) ? "" : "none";
+    data?.forEach(a => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <div>
+          <strong>${a.cliente_nome}</strong> - ${a.data_agendamento} às ${a.hora} - R$ ${a.valor.toFixed(2)}
+          <br>Status: ${a.status}
+        </div>
+        <div>
+          <button onclick="finalizarAgendamento('${a.id}')">Finalizar</button>
+        </div>
+      `;
+      lista.appendChild(li);
     });
-  });
+  }
+
+  // FINALIZAR AGENDAMENTO
+  window.finalizarAgendamento = async (id) => {
+    const { error } = await supabase
+      .from("agendamentos")
+      .update({ status: "finalizado" })
+      .eq("id", id);
+    if (error) return console.error("Erro ao finalizar:", error);
+    carregarFinanceiro();
+  }
 
   carregarFinanceiro();
 });

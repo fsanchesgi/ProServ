@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>ProServ | Agenda</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <link rel="stylesheet" href="./style.css">
 
   <style>
@@ -125,7 +124,7 @@
     }
 
     .actions button {
-      margin-left: .5rem;
+      margin-left: .4rem;
       border: none;
       padding: .4rem .75rem;
       border-radius: 6px;
@@ -140,6 +139,11 @@
 
     .btn-excluir {
       background: #ef4444;
+      color: #fff;
+    }
+
+    .btn-alterar {
+      background: #f59e0b;
       color: #fff;
     }
 
@@ -173,6 +177,7 @@
   <div class="cards-grid">
     <div class="dashboard-card">
       <h3>Novo Atendimento</h3>
+
       <form id="agenda-form">
         <div class="form-group">
           <label>Cliente</label>
@@ -228,11 +233,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const { data: auth } = await supabase.auth.getUser();
   const user = auth.user;
 
-  if (!user) {
-    location.href = "index.html";
-    return;
-  }
-
   document.getElementById("logoutBtn").onclick = async () => {
     await supabase.auth.signOut();
     location.href = "index.html";
@@ -254,23 +254,56 @@ document.addEventListener("DOMContentLoaded", async () => {
   form.onsubmit = async e => {
     e.preventDefault();
 
+    const editId = form.dataset.editando;
     const opt = servicoSelect.selectedOptions[0];
 
-    const { error } = await supabase.from("agendamentos").insert([{
-      usuario_id: user.id,
-      cliente_nome: cliente.value,
-      servico_id: servicoSelect.value,
-      data_agendamento: data.value,
-      hora: hora.value,
-      valor: opt.dataset.valor,
-      status: "pendente"
-    }]);
+    if (editId) {
+      await supabase
+        .from("agendamentos")
+        .update({
+          cliente_nome: cliente.value,
+          servico_id: servicoSelect.value,
+          data_agendamento: data.value,
+          hora: hora.value
+        })
+        .eq("id", editId);
 
-    if (!error) {
-      msg.textContent = "Atendimento salvo com sucesso!";
-      form.reset();
-      carregarAgenda();
+      delete form.dataset.editando;
+    } else {
+      await supabase.from("agendamentos").insert([{
+        usuario_id: user.id,
+        cliente_nome: cliente.value,
+        servico_id: servicoSelect.value,
+        data_agendamento: data.value,
+        hora: hora.value,
+        valor: opt.dataset.valor,
+        status: "pendente"
+      }]);
     }
+
+    form.reset();
+    msg.textContent = "Atendimento salvo com sucesso!";
+    carregarAgenda();
+  };
+
+  window.alterarAgendamento = async (id) => {
+    const { data } = await supabase
+      .from("agendamentos")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (!data || data.status === "finalizado") {
+      alert("Agendamentos finalizados não podem ser alterados.");
+      return;
+    }
+
+    cliente.value = data.cliente_nome;
+    servicoSelect.value = data.servico_id;
+    data.value = data.data_agendamento;
+    hora.value = data.hora;
+
+    form.dataset.editando = id;
   };
 
   window.finalizarAgendamento = async (id, valor) => {
@@ -316,13 +349,13 @@ document.addEventListener("DOMContentLoaded", async () => {
               ${a.data_agendamento} ${a.hora}
             </div>
             <div class="actions">
+              <button class="btn-alterar" onclick="alterarAgendamento('${a.id}')">Alterar</button>
               ${a.status === "pendente"
                 ? `<button class="btn-finalizar" onclick="finalizarAgendamento('${a.id}', ${a.valor})">Finalizar</button>`
                 : ""}
               <button class="btn-excluir" onclick="excluirAgendamento('${a.id}')">Excluir</button>
             </div>
-          </li>
-        `;
+          </li>`;
       });
   }
 

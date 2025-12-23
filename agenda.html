@@ -173,7 +173,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     duracao_minutos,
     valor,
     status: "agendado"
-  }, { onConflict: ['usuario_id', 'data_agendamento', 'hora'] });
+  }, { onConflict: 'agendamentos_usuario_data_hora_unique' });
 
     if (error) {
       console.error("Erro ao salvar agenda:", error);

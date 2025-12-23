@@ -163,17 +163,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // ✅ Upsert para evitar duplicidade 409
     const { error } = await supabase
-      .from("agendamentos")
-      .upsert({
-        usuario_id: user.id,
-        cliente_nome,
-        servico_id,
-        data_agendamento,
-        hora,
-        duracao_minutos,
-        valor,
-        status: "agendado"
-      }, { onConflict: ['usuario_id', 'data_agendamento', 'hora'] });
+  .from("agendamentos")
+  .upsert({
+    usuario_id: user.id,
+    cliente_nome,
+    servico_id,
+    data_agendamento,
+    hora,
+    duracao_minutos,
+    valor,
+    status: "agendado"
+  }, { onConflict: ['usuario_id', 'data_agendamento', 'hora'] });
 
     if (error) {
       console.error("Erro ao salvar agenda:", error);

@@ -142,16 +142,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const valor = Number(option.dataset.valor || 0);
 
     try {
-      const { error } = await supabase.from("agendamentos").insert({
+      const { error } = await supabase.from("agendamentos").insert([{
         usuario_id: user.id,
         cliente_nome,
         servico_id,
         data_agendamento,
         hora,
-        duracao_minutos,
-        valor,
+        duracao_minutos: duracao_minutos || 0,
+        valor: valor || 0,
         status: "agendado"
-      });
+    }]);
+
 
       if (error) throw error;
 

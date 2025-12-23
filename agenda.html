@@ -24,6 +24,7 @@
 
     header .container {
       max-width: 100%;
+      margin: 0;
       padding: 0 2rem;
       display: flex;
       justify-content: space-between;
@@ -32,8 +33,9 @@
 
     header nav a {
       color: #fff;
-      margin-right: 1.5rem;
       text-decoration: none;
+      margin-right: 1.5rem;
+      font-weight: 500;
     }
 
     header nav a.active {
@@ -55,6 +57,16 @@
       padding: 0 2rem;
     }
 
+    .dashboard-header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    .dashboard-header p {
+      margin: .25rem 0 2rem;
+      color: #6b7280;
+    }
+
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -68,22 +80,24 @@
       box-shadow: 0 4px 12px rgba(0,0,0,.05);
     }
 
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
     label {
-      display: block;
-      margin-top: .75rem;
       font-weight: 500;
+      display: block;
+      margin-bottom: .25rem;
     }
 
     input, select {
       width: 100%;
       padding: .5rem;
-      margin-top: .25rem;
       border-radius: 6px;
       border: 1px solid #d1d5db;
     }
 
     .btn-primary {
-      margin-top: 1rem;
       background: #4f46e5;
       color: #fff;
       border: none;
@@ -92,28 +106,47 @@
       cursor: pointer;
     }
 
-    ul {
+    .agenda-list {
       list-style: none;
       padding: 0;
+      margin: 0;
     }
 
-    li {
+    .agenda-list li {
       background: #f3f4f6;
-      padding: .75rem 1rem;
       border-radius: 8px;
+      padding: .75rem 1rem;
       margin-bottom: .75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
     }
 
     .actions button {
-      margin-right: .5rem;
+      margin-left: .5rem;
       border: none;
       padding: .4rem .75rem;
       border-radius: 6px;
       cursor: pointer;
+      font-size: .85rem;
     }
 
-    .btn-finalizar { background: #10b981; color: #fff; }
-    .btn-editar { background: #3b82f6; color: #fff; }
+    .btn-finalizar {
+      background: #10b981;
+      color: #fff;
+    }
+
+    .btn-editar {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
   </style>
 </head>
 
@@ -121,7 +154,7 @@
 
 <header>
   <div class="container">
-    <img src="./images/logo.png" height="70">
+    <img src="./images/logo.png" height="80">
     <nav>
       <a href="dashboard.html">Dashboard</a>
       <a href="agenda.html" class="active">Agenda</a>
@@ -131,42 +164,55 @@
 </header>
 
 <section class="dashboard-page">
-  <div class="cards-grid">
+  <div class="dashboard-header">
+    <h1>📅 Agenda</h1>
+    <p>Gerencie seus atendimentos</p>
+  </div>
 
+  <div class="cards-grid">
     <div class="dashboard-card">
       <h3>Novo Atendimento</h3>
 
       <form id="agenda-form">
         <input type="hidden" id="agendaId">
 
-        <label>Cliente</label>
-        <input id="cliente" required>
+        <div class="form-group">
+          <label>Cliente</label>
+          <input type="text" id="cliente" required>
+        </div>
 
-        <label>Serviço</label>
-        <select id="servico" required></select>
+        <div class="form-group">
+          <label>Serviço</label>
+          <select id="servico" required></select>
+        </div>
 
-        <label>Data</label>
-        <input type="date" id="data" required>
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" id="data" required>
+        </div>
 
-        <label>Hora</label>
-        <input type="time" id="hora" required>
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="time" id="hora" required>
+        </div>
 
-        <label>Lembrete</label>
-        <select id="lembrete">
-          <option value="0">Sem lembrete</option>
-          <option value="24">24 horas antes</option>
-          <option value="2">2 horas antes</option>
-        </select>
+        <div class="form-group">
+          <label>Lembrete</label>
+          <select id="lembrete">
+            <option value="0">Sem lembrete</option>
+            <option value="24">24 horas antes</option>
+            <option value="2">2 horas antes</option>
+          </select>
+        </div>
 
-        <button class="btn-primary">Salvar</button>
+        <button class="btn-primary" type="submit">Salvar</button>
       </form>
     </div>
 
     <div class="dashboard-card">
       <h3>Atendimentos</h3>
-      <ul id="lista"></ul>
+      <ul id="lista" class="agenda-list"></ul>
     </div>
-
   </div>
 </section>
 
@@ -176,8 +222,21 @@
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
 
+  const agendaForm = document.getElementById("agenda-form");
+  const agendaId = document.getElementById("agendaId");
+  const cliente = document.getElementById("cliente");
+  const servico = document.getElementById("servico");
+  const dataInput = document.getElementById("data");
+  const hora = document.getElementById("hora");
+  const lembrete = document.getElementById("lembrete");
+  const lista = document.getElementById("lista");
+  const logoutBtn = document.getElementById("logoutBtn");
+
   const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return location.href = "index.html";
+  if (!auth.user) {
+    location.href = "index.html";
+    return;
+  }
   const user = auth.user;
 
   logoutBtn.onclick = async () => {
@@ -198,14 +257,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   agendaForm.onsubmit = async e => {
     e.preventDefault();
 
+    const opt = servico.selectedOptions[0];
     const payload = {
       usuario_id: user.id,
       cliente_nome: cliente.value,
       servico_id: servico.value,
-      data_agendamento: data.value,
+      data_agendamento: dataInput.value,
       hora: hora.value,
       lembrete_horas: Number(lembrete.value),
-      valor: servico.selectedOptions[0].dataset.valor
+      valor: opt.dataset.valor
     };
 
     if (agendaId.value) {
@@ -217,40 +277,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     agendaForm.reset();
     agendaId.value = "";
-    carregar();
+    carregarAgenda();
   };
 
   window.editar = async id => {
     const { data } = await supabase.from("agendamentos").select("*").eq("id", id).single();
-    if (data.status === "finalizado") return alert("Agendamento finalizado.");
+    if (data.status === "finalizado") {
+      alert("Agendamento finalizado não pode ser editado.");
+      return;
+    }
 
     agendaId.value = data.id;
     cliente.value = data.cliente_nome;
     servico.value = data.servico_id;
-    data.value = data.data_agendamento;
+    dataInput.value = data.data_agendamento;
     hora.value = data.hora;
-    lembrete.value = data.lembrete_horas || 0;
+    lembrete.value = data.lembrete_horas ?? 0;
   };
 
-  window.finalizar = async (id, valor) => {
-    await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id);
-    await supabase.from("financeiro").insert([{
-      agenda_id: id,
-      user_id: user.id,
-      tipo: "receita",
-      valor,
-      status: "confirmado"
-    }]);
-    carregar();
-  };
-
-  async function carregar() {
+  async function carregarAgenda() {
     lista.innerHTML = "";
-    const { data } = await supabase
-      .from("agendamentos")
-      .select("*")
-      .eq("usuario_id", user.id)
-      .order("data_agendamento");
+    const { data } = await supabase.from("agendamentos").select("*").eq("usuario_id", user.id);
 
     data.forEach(a => {
       lista.innerHTML += `
@@ -258,16 +305,15 @@ document.addEventListener("DOMContentLoaded", async () => {
           <strong>${a.cliente_nome}</strong><br>
           ${a.data_agendamento} ${a.hora}
           <div class="actions">
-            ${a.status === "pendente" ? `
-              <button class="btn-editar" onclick="editar('${a.id}')">Alterar</button>
-              <button class="btn-finalizar" onclick="finalizar('${a.id}', ${a.valor})">Finalizar</button>
-            ` : ""}
+            ${a.status === "pendente"
+              ? `<button class="btn-editar" onclick="editar('${a.id}')">Alterar</button>`
+              : ""}
           </div>
         </li>`;
     });
   }
 
-  carregar();
+  carregarAgenda();
 });
 </script>
 

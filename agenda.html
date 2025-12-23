@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>ProServ | Agenda</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="./images/favicon.png">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -35,24 +34,20 @@
           <label>Cliente</label>
           <input type="text" id="cliente" required>
         </div>
-
         <div class="form-group">
           <label>Serviço</label>
           <select id="servico" required>
             <option value="">Selecione o serviço</option>
           </select>
         </div>
-
         <div class="form-group">
           <label>Data</label>
           <input type="date" id="data" required>
         </div>
-
         <div class="form-group">
           <label>Hora</label>
           <input type="time" id="hora" required>
         </div>
-
         <button class="plan-button" type="submit">Salvar</button>
       </form>
       <p id="msg"></p>
@@ -70,158 +65,144 @@
   &copy; 2025 ProServ
 </footer>
 
-<!-- Scripts como módulos -->
-<script type="module">
-  import { supabase } from './supabase.js';
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase.js"></script>
 
-  window.supabase = supabase; // Para manter compatibilidade com scripts que usam window.supabase
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
 
-const form = document.getElementById("agenda-form");
-const msg = document.getElementById("msg");
-const lista = document.getElementById("lista-agenda");
-const servicoSelect = document.getElementById("servico");
+  const form = document.getElementById("agenda-form");
+  const msg = document.getElementById("msg");
+  const lista = document.getElementById("lista-agenda");
+  const servicoSelect = document.getElementById("servico");
 
-/* =========================
-   LOGOUT
-========================= */
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await supabase.auth.signOut();
-  window.location.href = "index.html";
-});
-
-/* =========================
-   USUÁRIO LOGADO
-========================= */
-const { data: authData, error: authError } = await supabase.auth.getUser();
-if (authError || !authData.user) {
-  console.error("Usuário não autenticado");
-  alert("Usuário não autenticado. Faça login novamente.");
-  window.location.href = "index.html";
-}
-const user = authData.user;
-
-/* =========================
-   CARREGAR SERVIÇOS
-========================= */
-try {
-  const { data: servicos, error: servicosError } = await supabase
-    .from("servicos")
-    .select("id, nome, duracao_minutos, valor")
-    .eq("user_id", user.id)
-    .order("nome");
-
-  if (servicosError) throw servicosError;
-
-  console.log("Serviços carregados:", servicos);
-
-  servicoSelect.innerHTML = `<option value="">Selecione o serviço</option>`;
-  servicos.forEach(s => {
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.textContent = `${s.nome} (${s.duracao_minutos} min) - R$ ${s.valor}`;
-    opt.dataset.duracao = s.duracao_minutos;
-    opt.dataset.valor = s.valor;
-    servicoSelect.appendChild(opt);
+  // LOGOUT
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    window.location.href = "index.html";
   });
 
-  if (servicos.length === 0) {
-    const opt = document.createElement("option");
-    opt.value = "";
-    opt.textContent = "Nenhum serviço disponível";
-    servicoSelect.appendChild(opt);
-  }
-
-} catch (err) {
-  console.error("Erro ao carregar serviços:", err);
-  servicoSelect.innerHTML = `<option value="">Erro ao carregar serviços</option>`;
-}
-
-/* =========================
-   SALVAR AGENDA
-========================= */
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  msg.textContent = "";
-
-  const cliente_nome = document.getElementById("cliente").value.trim();
-  const servico_id = servicoSelect.value;
-  const data_agendamento = document.getElementById("data").value;
-  const hora = document.getElementById("hora").value;
-
-  if (!cliente_nome || !servico_id || !data_agendamento || !hora) {
-    msg.textContent = "Preencha todos os campos.";
-    msg.style.color = "red";
+  // USUÁRIO LOGADO
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) {
+    console.error("Usuário não autenticado");
     return;
   }
+  const user = authData.user;
 
-  const option = servicoSelect.selectedOptions[0];
-  const duracao_minutos = Number(option.dataset.duracao || 0);
-  const valor = Number(option.dataset.valor || 0);
-
+  // CARREGAR SERVIÇOS
   try {
-    const { error } = await supabase.from("agendamentos").insert({
-      usuario_id: user.id,
-      cliente_nome,
-      servico_id,
-      data_agendamento,
-      hora,
-      duracao_minutos,
-      valor,
-      status: "agendado"
+    const { data: servicos, error: servicosError } = await supabase
+      .from("servicos")
+      .select("id, nome, duracao_minutos, valor")
+      .eq("user_id", user.id)
+      .order("nome");
+
+    if (servicosError) throw servicosError;
+
+    servicoSelect.innerHTML = `<option value="">Selecione o serviço</option>`;
+    servicos.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.dataset.duracao = s.duracao_minutos;
+      opt.dataset.valor = s.valor;
+      opt.textContent = `${s.nome} (${s.duracao_minutos} min) - R$ ${s.valor}`;
+      servicoSelect.appendChild(opt);
     });
 
-    if (error) throw error;
-
-    msg.textContent = "Atendimento salvo com sucesso!";
-    msg.style.color = "green";
-    form.reset();
-    carregarAgenda();
-
+    if (servicos.length === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Nenhum serviço disponível";
+      servicoSelect.appendChild(opt);
+    }
   } catch (err) {
-    console.error("Erro ao salvar agenda:", err);
-    msg.textContent = "Erro ao salvar atendimento.";
-    msg.style.color = "red";
-  }
-});
-
-/* =========================
-   LISTAR AGENDA
-========================= */
-async function carregarAgenda() {
-  lista.innerHTML = "";
-
-  const { data, error } = await supabase
-    .from("agendamentos")
-    .select("id, cliente_nome, servico_id, data_agendamento, hora")
-    .eq("usuario_id", user.id)
-    .order("data_agendamento");
-
-  if (error) {
-    console.error("Erro ao listar agenda:", error);
-    return;
+    console.error("Erro ao carregar serviços:", err);
+    servicoSelect.innerHTML = `<option value="">Erro ao carregar serviços</option>`;
   }
 
-  const { data: servicos, error: servicosError } = await supabase
-    .from("servicos")
-    .select("id, nome")
-    .eq("user_id", user.id);
+  // SALVAR AGENDA
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.textContent = "";
 
-  const servicoMap = {};
-  servicos?.forEach(s => servicoMap[s.id] = s.nome);
+    const cliente_nome = document.getElementById("cliente").value.trim();
+    const servico_id = servicoSelect.value;
+    const data_agendamento = document.getElementById("data").value;
+    const hora = document.getElementById("hora").value;
 
-  data.forEach(a => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <strong>${a.cliente_nome}</strong><br>
-      ${a.data_agendamento} às ${a.hora}<br>
-      Serviço: ${servicoMap[a.servico_id] || "-"}
-    `;
-    lista.appendChild(li);
+    if (!cliente_nome || !servico_id || !data_agendamento || !hora) {
+      msg.textContent = "Preencha todos os campos.";
+      msg.style.color = "red";
+      return;
+    }
+
+    const option = servicoSelect.selectedOptions[0];
+    const duracao_minutos = Number(option.dataset.duracao || 0);
+    const valor = Number(option.dataset.valor || 0);
+
+    try {
+      const { error } = await supabase.from("agendamentos").insert({
+        usuario_id: user.id,
+        cliente_nome,
+        servico_id,
+        data_agendamento,
+        hora,
+        duracao_minutos,
+        valor,
+        status: "agendado"
+      });
+
+      if (error) throw error;
+
+      msg.textContent = "Atendimento salvo com sucesso!";
+      msg.style.color = "green";
+      form.reset();
+      carregarAgenda();
+
+    } catch (err) {
+      console.error("Erro ao salvar agenda:", err);
+      msg.textContent = "Erro ao salvar atendimento.";
+      msg.style.color = "red";
+    }
   });
-}
 
-// Carrega agenda ao iniciar
-carregarAgenda();
+  // LISTAR AGENDA
+  async function carregarAgenda() {
+    lista.innerHTML = "";
+
+    const { data, error } = await supabase
+      .from("agendamentos")
+      .select("id, cliente_nome, servico_id, data_agendamento, hora")
+      .eq("usuario_id", user.id)
+      .order("data_agendamento");
+
+    if (error) {
+      console.error("Erro ao listar agenda:", error);
+      return;
+    }
+
+    const { data: servicos, error: servicosError } = await supabase
+      .from("servicos")
+      .select("id, nome")
+      .eq("user_id", user.id);
+
+    const servicoMap = {};
+    servicos?.forEach(s => servicoMap[s.id] = s.nome);
+
+    data.forEach(a => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <strong>${a.cliente_nome}</strong><br>
+        ${a.data_agendamento} às ${a.hora}<br>
+        Serviço: ${servicoMap[a.servico_id] || "-"}
+      `;
+      lista.appendChild(li);
+    });
+  }
+
+  carregarAgenda();
+});
 </script>
 
 </body>

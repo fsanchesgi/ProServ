@@ -5,13 +5,123 @@
   <title>ProServ | Agenda</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="./style.css">
+
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      color: #111827;
+    }
+
+    header {
+      background: #111827;
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    header .container {
+      max-width: 100%;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header nav a {
+      color: #fff;
+      margin-right: 1.5rem;
+      text-decoration: none;
+    }
+
+    header nav a.active {
+      border-bottom: 2px solid #4f46e5;
+    }
+
+    header nav button {
+      background: #4f46e5;
+      border: none;
+      color: #fff;
+      padding: .5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .dashboard-page {
+      max-width: 1200px;
+      margin: 2.5rem auto;
+      padding: 0 2rem;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+    }
+
+    .dashboard-card {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.05);
+    }
+
+    label {
+      display: block;
+      margin-top: .75rem;
+      font-weight: 500;
+    }
+
+    input, select {
+      width: 100%;
+      padding: .5rem;
+      margin-top: .25rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+    }
+
+    .btn-primary {
+      margin-top: 1rem;
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      padding: .6rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #f3f4f6;
+      padding: .75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: .75rem;
+    }
+
+    .actions button {
+      margin-right: .5rem;
+      border: none;
+      padding: .4rem .75rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-finalizar { background: #10b981; color: #fff; }
+    .btn-editar { background: #3b82f6; color: #fff; }
+  </style>
 </head>
 
 <body>
 
 <header>
   <div class="container">
-    <img src="./images/logo.png" height="80">
+    <img src="./images/logo.png" height="70">
     <nav>
       <a href="dashboard.html">Dashboard</a>
       <a href="agenda.html" class="active">Agenda</a>
@@ -21,17 +131,16 @@
 </header>
 
 <section class="dashboard-page">
-
   <div class="cards-grid">
 
     <div class="dashboard-card">
       <h3>Novo Atendimento</h3>
 
       <form id="agenda-form">
-        <input type="hidden" id="agenda-id">
+        <input type="hidden" id="agendaId">
 
         <label>Cliente</label>
-        <input type="text" id="cliente" required>
+        <input id="cliente" required>
 
         <label>Serviço</label>
         <select id="servico" required></select>
@@ -49,13 +158,13 @@
           <option value="2">2 horas antes</option>
         </select>
 
-        <button class="btn-primary" type="submit">Salvar</button>
+        <button class="btn-primary">Salvar</button>
       </form>
     </div>
 
     <div class="dashboard-card">
       <h3>Atendimentos</h3>
-      <ul id="lista-agenda"></ul>
+      <ul id="lista"></ul>
     </div>
 
   </div>
@@ -66,9 +175,6 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
-
-  const form = document.getElementById("agenda-form");
-  const lista = document.getElementById("lista-agenda");
 
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return location.href = "index.html";
@@ -89,11 +195,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     servico.innerHTML += `<option value="${s.id}" data-valor="${s.valor}">${s.nome}</option>`;
   });
 
-  form.onsubmit = async e => {
+  agendaForm.onsubmit = async e => {
     e.preventDefault();
-
-    const id = agendaId.value;
-    const opt = servico.selectedOptions[0];
 
     const payload = {
       usuario_id: user.id,
@@ -101,65 +204,32 @@ document.addEventListener("DOMContentLoaded", async () => {
       servico_id: servico.value,
       data_agendamento: data.value,
       hora: hora.value,
-      valor: opt.dataset.valor,
-      lembrete_horas: Number(lembrete.value)
+      lembrete_horas: Number(lembrete.value),
+      valor: servico.selectedOptions[0].dataset.valor
     };
 
-    if (id) {
-      await supabase.from("agendamentos").update(payload).eq("id", id);
+    if (agendaId.value) {
+      await supabase.from("agendamentos").update(payload).eq("id", agendaId.value);
     } else {
       payload.status = "pendente";
       await supabase.from("agendamentos").insert([payload]);
     }
 
-    form.reset();
+    agendaForm.reset();
     agendaId.value = "";
-    carregarAgenda();
+    carregar();
   };
 
-  async function carregarAgenda() {
-    lista.innerHTML = "";
-
-    const { data } = await supabase
-      .from("agendamentos")
-      .select("*")
-      .eq("usuario_id", user.id)
-      .order("data_agendamento");
-
-    data.forEach(a => {
-      lista.innerHTML += `
-        <li>
-          <strong>${a.cliente_nome}</strong><br>
-          ${a.data_agendamento} ${a.hora}<br>
-          Lembrete: ${a.lembrete_horas || 0}h
-          <div>
-            ${a.status === "pendente" ? `
-              <button onclick="editar('${a.id}')">Alterar</button>
-              <button onclick="finalizar('${a.id}', ${a.valor})">Finalizar</button>
-            ` : ""}
-          </div>
-        </li>`;
-    });
-  }
-
   window.editar = async id => {
-    const { data: agendamento } = await supabase
-      .from("agendamentos")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data } = await supabase.from("agendamentos").select("*").eq("id", id).single();
+    if (data.status === "finalizado") return alert("Agendamento finalizado.");
 
-    if (agendamento.status === "finalizado") {
-      alert("Agendamento finalizado não pode ser alterado.");
-      return;
-    }
-
-    agendaId.value = agendamento.id;
-    cliente.value = agendamento.cliente_nome;
-    servico.value = agendamento.servico_id;
-    data.value = agendamento.data_agendamento;
-    hora.value = agendamento.hora;
-    lembrete.value = agendamento.lembrete_horas || 0;
+    agendaId.value = data.id;
+    cliente.value = data.cliente_nome;
+    servico.value = data.servico_id;
+    data.value = data.data_agendamento;
+    hora.value = data.hora;
+    lembrete.value = data.lembrete_horas || 0;
   };
 
   window.finalizar = async (id, valor) => {
@@ -171,10 +241,33 @@ document.addEventListener("DOMContentLoaded", async () => {
       valor,
       status: "confirmado"
     }]);
-    carregarAgenda();
+    carregar();
   };
 
-  carregarAgenda();
+  async function carregar() {
+    lista.innerHTML = "";
+    const { data } = await supabase
+      .from("agendamentos")
+      .select("*")
+      .eq("usuario_id", user.id)
+      .order("data_agendamento");
+
+    data.forEach(a => {
+      lista.innerHTML += `
+        <li>
+          <strong>${a.cliente_nome}</strong><br>
+          ${a.data_agendamento} ${a.hora}
+          <div class="actions">
+            ${a.status === "pendente" ? `
+              <button class="btn-editar" onclick="editar('${a.id}')">Alterar</button>
+              <button class="btn-finalizar" onclick="finalizar('${a.id}', ${a.valor})">Finalizar</button>
+            ` : ""}
+          </div>
+        </li>`;
+    });
+  }
+
+  carregar();
 });
 </script>
 

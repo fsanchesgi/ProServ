@@ -165,6 +165,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         .from("financeiro")
         .insert([{
           agenda_id: novoAgendamento.id,
+          user_id: user.id,   // <-- ajuste necessário
           tipo: "receita",
           valor: valor || 0,
           status: "pendente"

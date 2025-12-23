@@ -118,24 +118,6 @@
       margin-bottom: .75rem;
     }
 
-    .actions {
-      margin-top: .5rem;
-    }
-
-    .actions button {
-      margin-right: .5rem;
-      border: none;
-      padding: .4rem .75rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: .85rem;
-      color: #fff;
-    }
-
-    .btn-finalizar { background: #10b981; }
-    .btn-excluir { background: #ef4444; }
-    .btn-editar { background: #2563eb; }
-
     small {
       display: block;
       color: #6b7280;
@@ -197,7 +179,6 @@
         </div>
 
         <button class="btn-primary" type="submit">Salvar</button>
-        <p id="msg"></p>
       </form>
     </div>
 
@@ -223,19 +204,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     location.href = "index.html";
     return;
   }
-  const user = auth.user;
 
   document.getElementById("logoutBtn").onclick = async () => {
     await supabase.auth.signOut();
     location.href = "index.html";
   };
 
-  /* 🔹 CARREGAR SERVIÇOS (CORREÇÃO DO DROPDOWN) */
   async function carregarServicos() {
     const { data, error } = await supabase
       .from("servicos")
       .select("id, nome")
-      .eq("usuario_id", user.id)
       .order("nome");
 
     if (error) {
@@ -244,46 +222,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     servicoSelect.innerHTML = "<option value=''>Selecione</option>";
-
     data.forEach(s => {
-      const opt = document.createElement("option");
-      opt.value = s.id;
-      opt.textContent = s.nome;
-      servicoSelect.appendChild(opt);
+      servicoSelect.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
     });
   }
 
-  function formatarDataHora(dataISO, hora) {
-    const d = new Date(dataISO);
-    return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()} às ${hora.slice(0,5)}`;
-  }
-
-  function textoLembrete(v) {
-    if (!v || v == 0) return "Sem lembrete";
-    return v == 24 ? "24h antes" : "2h antes";
-  }
-
   async function carregarAgenda() {
-    lista.innerHTML = "";
-
     const { data } = await supabase
       .from("agendamentos")
       .select("*")
-      .eq("usuario_id", user.id)
       .order("data_agendamento");
 
+    lista.innerHTML = "";
     data.forEach(a => {
       lista.innerHTML += `
         <li>
           <strong>${a.cliente_nome}</strong>
-          <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
-          <small>Lembrete: ${textoLembrete(a.lembrete_horas)}</small>
+          <small>${a.data_agendamento} ${a.hora}</small>
         </li>
       `;
     });
   }
 
-  /* 🔹 CHAMADAS */
   await carregarServicos();
   await carregarAgenda();
 });

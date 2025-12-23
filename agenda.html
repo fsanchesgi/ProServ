@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const user = authData.user;
 
   /* =========================
-     CARREGAR SERVIÇOS (solução definitiva)
+     CARREGAR SERVIÇOS
   ========================= */
   try {
     const { data: servicos, error: servicosError } = await supabase
@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (servicosError) throw servicosError;
 
-    console.log("Serviços carregados:", servicos); // 🔹 debug para verificar se chega dados
+    console.log("Serviços carregados:", servicos);
 
     servicoSelect.innerHTML = `<option value="">Selecione o serviço</option>`;
     servicos.forEach(s => {
@@ -141,85 +141,90 @@ document.addEventListener("DOMContentLoaded", async () => {
      SALVAR AGENDA
   ========================= */
   form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  msg.textContent = "";
+    e.preventDefault();
+    msg.textContent = "";
 
-  const cliente_nome = document.getElementById("cliente").value.trim();
-  const servico_id = servicoSelect.value;
-  const data_agendamento = document.getElementById("data").value;
-  const hora = document.getElementById("hora").value;
+    const cliente_nome = document.getElementById("cliente").value.trim();
+    const servico_id = servicoSelect.value;
+    const data_agendamento = document.getElementById("data").value;
+    const hora = document.getElementById("hora").value;
 
-  if (!cliente_nome || !servico_id || !data_agendamento || !hora) {
-    msg.textContent = "Preencha todos os campos.";
-    msg.style.color = "red";
-    return;
-  }
+    if (!cliente_nome || !servico_id || !data_agendamento || !hora) {
+      msg.textContent = "Preencha todos os campos.";
+      msg.style.color = "red";
+      return;
+    }
 
-  // Busca o valor e duracao do serviço selecionado
-  const option = servicoSelect.selectedOptions[0];
-  const duracao_minutos = Number(option.dataset.duracao || 0);
-  const valor = Number(option.dataset.valor || 0);
+    const option = servicoSelect.selectedOptions[0];
+    const duracao_minutos = Number(option.dataset.duracao || 0);
+    const valor = Number(option.dataset.valor || 0);
 
-  const { error } = await supabase.from("agendamentos").insert({
-    usuario_id: user.id,
-    cliente_nome,
-    servico_id,
-    data_agendamento,
-    hora,
-    duracao_minutos,
-    valor,
-    status: "agendado"
+    const { error } = await supabase.from("agendamentos").insert({
+      usuario_id: user.id,
+      cliente_nome,
+      servico_id,
+      data_agendamento,
+      hora,
+      duracao_minutos,
+      valor,
+      status: "agendado"
+    });
+
+    if (error) {
+      console.error("Erro ao salvar agenda:", error);
+      msg.textContent = "Erro ao salvar atendimento.";
+      msg.style.color = "red";
+      return;
+    }
+
+    msg.textContent = "Atendimento salvo com sucesso!";
+    msg.style.color = "green";
+    form.reset();
+    carregarAgenda();
   });
-
-  if (error) {
-    console.error("Erro ao salvar agenda:", error);
-    msg.textContent = "Erro ao salvar atendimento.";
-    msg.style.color = "red";
-    return;
-  }
-
-  msg.textContent = "Atendimento salvo com sucesso!";
-  msg.style.color = "green";
-  form.reset();
-  carregarAgenda();
-});
 
   /* =========================
      LISTAR AGENDA
   ========================= */
   async function carregarAgenda() {
-  lista.innerHTML = "";
+    lista.innerHTML = "";
 
-  const { data, error } = await supabase
-    .from("agendamentos")
-    .select("id, cliente_nome, servico_id, data_agendamento, hora")
-    .eq("usuario_id", user.id)
-    .order("data_agendamento");
+    const { data, error } = await supabase
+      .from("agendamentos")
+      .select("id, cliente_nome, servico_id, data_agendamento, hora")
+      .eq("usuario_id", user.id)
+      .order("data_agendamento");
 
-  if (error) {
-    console.error("Erro ao listar agenda:", error);
-    return;
+    if (error) {
+      console.error("Erro ao listar agenda:", error);
+      return;
+    }
+
+    const { data: servicos, error: servicosError } = await supabase
+      .from("servicos")
+      .select("id, nome")
+      .eq("user_id", user.id);
+
+    const servicoMap = {};
+    servicos?.forEach(s => servicoMap[s.id] = s.nome);
+
+    data.forEach(a => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <strong>${a.cliente_nome}</strong><br>
+        ${a.data_agendamento} às ${a.hora}<br>
+        Serviço: ${servicoMap[a.servico_id] || "-"}
+      `;
+      lista.appendChild(li);
+    });
   }
 
-  const { data: servicos, error: servicosError } = await supabase
-    .from("servicos")
-    .select("id, nome")
-    .eq("user_id", user.id);
+  // Carrega agenda ao abrir a página
+  carregarAgenda();
 
-  const servicoMap = {};
-  servicos?.forEach(s => servicoMap[s.id] = s.nome);
-
-  data.forEach(a => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <strong>${a.cliente_nome}</strong><br>
-      ${a.data_agendamento} às ${a.hora}<br>
-      Serviço: ${servicoMap[a.servico_id] || "-"}
-    `;
-    lista.appendChild(li);
-  });
-});
+}); // <-- FECHA o DOMContentLoaded corretamente
 </script>
+
 
 </body>
 </html>

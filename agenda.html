@@ -23,12 +23,12 @@
     }
 
     header .container {
-      max-width: 100%;
-      margin: 0;
+      width: 100%;
       padding: 0 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-sizing: border-box;
     }
 
     header nav a {
@@ -57,14 +57,9 @@
       padding: 0 2rem;
     }
 
-    .dashboard-header h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-
     .dashboard-header p {
-      margin: .25rem 0 2rem;
       color: #6b7280;
+      margin-bottom: 2rem;
     }
 
     .cards-grid {
@@ -84,12 +79,6 @@
       margin-bottom: 1rem;
     }
 
-    label {
-      font-weight: 500;
-      display: block;
-      margin-bottom: .25rem;
-    }
-
     input, select {
       width: 100%;
       padding: .5rem;
@@ -106,12 +95,6 @@
       cursor: pointer;
     }
 
-    .agenda-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
     .agenda-list li {
       background: #f3f4f6;
       border-radius: 8px;
@@ -120,11 +103,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 1rem;
     }
 
     .actions button {
-      margin-left: .5rem;
+      margin-left: .4rem;
       border: none;
       padding: .4rem .75rem;
       border-radius: 6px;
@@ -132,20 +114,18 @@
       font-size: .85rem;
     }
 
-    .btn-finalizar {
-      background: #10b981;
-      color: #fff;
+    .btn-finalizar { background: #10b981; color: #fff; }
+    .btn-alterar { background: #3b82f6; color: #fff; }
+    .btn-excluir { background: #ef4444; color: #fff; }
+
+    .status {
+      font-size: .75rem;
+      font-weight: bold;
+      margin-top: .25rem;
     }
 
-    .btn-excluir {
-      background: #ef4444;
-      color: #fff;
-    }
-
-    .btn-alterar {
-      background: #f59e0b;
-      color: #fff;
-    }
+    .status.pendente { color: #d97706; }
+    .status.finalizado { color: #059669; }
 
     .filter-bar {
       display: flex;
@@ -159,7 +139,7 @@
 
 <header>
   <div class="container">
-    <img src="./images/logo.png" height="80">
+    <img src="./images/logo.png" height="70">
     <nav>
       <a href="dashboard.html">Dashboard</a>
       <a href="agenda.html" class="active">Agenda</a>
@@ -175,6 +155,7 @@
   </div>
 
   <div class="cards-grid">
+
     <div class="dashboard-card">
       <h3 id="form-title">Novo Atendimento</h3>
 
@@ -199,7 +180,7 @@
           <input type="time" id="hora" required>
         </div>
 
-        <button class="btn-primary" type="submit" id="btn-submit">Salvar</button>
+        <button class="btn-primary" type="submit" id="btnSalvar">Salvar</button>
         <p id="msg"></p>
       </form>
     </div>
@@ -212,8 +193,9 @@
         <select id="filtro-servico"></select>
       </div>
 
-      <ul id="lista-agenda" class="agenda-list"></ul>
+      <ul id="lista-agenda"></ul>
     </div>
+
   </div>
 </section>
 
@@ -231,6 +213,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const filtroCliente = document.getElementById("filtro-cliente");
   const filtroServico = document.getElementById("filtro-servico");
   const msg = document.getElementById("msg");
+  const formTitle = document.getElementById("form-title");
+  const btnSalvar = document.getElementById("btnSalvar");
 
   const { data: auth } = await supabase.auth.getUser();
   const user = auth.user;
@@ -257,27 +241,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     e.preventDefault();
 
     const opt = servicoSelect.selectedOptions[0];
+    const payload = {
+      cliente_nome: cliente.value,
+      servico_id: servicoSelect.value,
+      data_agendamento: data.value,
+      hora: hora.value,
+      valor: opt.dataset.valor
+    };
 
     if (editandoId) {
-      await supabase.from("agendamentos").update({
-        cliente_nome: cliente.value,
-        servico_id: servicoSelect.value,
-        data_agendamento: data.value,
-        hora: hora.value,
-        valor: opt.dataset.valor
-      }).eq("id", editandoId);
-
+      await supabase.from("agendamentos").update(payload).eq("id", editandoId);
       editandoId = null;
-      document.getElementById("form-title").textContent = "Novo Atendimento";
-      document.getElementById("btn-submit").textContent = "Salvar";
+      formTitle.textContent = "Novo Atendimento";
+      btnSalvar.textContent = "Salvar";
     } else {
       await supabase.from("agendamentos").insert([{
+        ...payload,
         usuario_id: user.id,
-        cliente_nome: cliente.value,
-        servico_id: servicoSelect.value,
-        data_agendamento: data.value,
-        hora: hora.value,
-        valor: opt.dataset.valor,
         status: "pendente"
       }]);
     }
@@ -285,6 +265,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     form.reset();
     carregarAgenda();
   };
+
+  async function alterarAgendamento(a) {
+    if (a.status === "finalizado") {
+      alert("Agendamento finalizado não pode ser alterado.");
+      return;
+    }
+
+    editandoId = a.id;
+    cliente.value = a.cliente_nome;
+    servicoSelect.value = a.servico_id;
+    data.value = a.data_agendamento;
+    hora.value = a.hora;
+
+    formTitle.textContent = "Editar Atendimento";
+    btnSalvar.textContent = "Atualizar";
+  }
 
   async function finalizarAgendamento(id, valor) {
     await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id);
@@ -305,18 +301,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  function alterarAgendamento(a) {
-    editandoId = a.id;
-    cliente.value = a.cliente_nome;
-    servicoSelect.value = a.servico_id;
-    data.value = a.data_agendamento;
-    hora.value = a.hora;
-
-    document.getElementById("form-title").textContent = "Alterar Atendimento";
-    document.getElementById("btn-submit").textContent = "Atualizar";
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
   async function carregarAgenda() {
     lista.innerHTML = "";
 
@@ -335,13 +319,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             <div>
               <strong>${a.cliente_nome}</strong><br>
               ${a.data_agendamento} ${a.hora}
+              <div class="status ${a.status}">${a.status}</div>
             </div>
             <div class="actions">
               ${a.status === "pendente"
-                ? `<button class="btn-finalizar" onclick='finalizarAgendamento("${a.id}", ${a.valor})'>Finalizar</button>`
+                ? `<button class="btn-finalizar" onclick="finalizarAgendamento('${a.id}', ${a.valor})">Finalizar</button>
+                   <button class="btn-alterar" onclick='alterarAgendamento(${JSON.stringify(a)})'>Alterar</button>`
                 : ""}
-              <button class="btn-alterar" onclick='alterarAgendamento(${JSON.stringify(a)})'>Alterar</button>
-              <button class="btn-excluir" onclick='excluirAgendamento("${a.id}")'>Excluir</button>
+              <button class="btn-excluir" onclick="excluirAgendamento('${a.id}')">Excluir</button>
             </div>
           </li>`;
       });
@@ -349,6 +334,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   filtroCliente.oninput = carregarAgenda;
   filtroServico.onchange = carregarAgenda;
+
+  window.alterarAgendamento = alterarAgendamento;
+  window.finalizarAgendamento = finalizarAgendamento;
+  window.excluirAgendamento = excluirAgendamento;
 
   carregarAgenda();
 });

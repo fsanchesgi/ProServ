@@ -314,40 +314,62 @@ document.addEventListener("DOMContentLoaded", async () => {
     const duracao_minutos = Number(option.dataset.duracao || 0);
     const valor = Number(option.dataset.valor || 0);
 
-    try {
-      const { data: novoAgendamento, error } = await supabase.from("agendamentos").insert([{
-        usuario_id: user.id,
-        cliente_nome,
-        servico_id,
-        data_agendamento,
-        hora,
-        duracao_minutos,
+    async function finalizarAgendamento(agendaId) {
+  try {
+    // 1. Buscar agendamento com serviço
+    const { data: agendamento, error: agendamentoError } = await supabase
+      .from("agendamentos")
+      .select(`
+        id,
+        status,
         valor,
-        status: "agendado"
-      }]).select().single();
+        servico:servico_id (
+          valor,
+          valor_promocional
+        )
+      `)
+      .eq("id", agendaId)
+      .single();
 
-      if (error) throw error;
+    if (agendamentoError) throw agendamentoError;
 
-      const { error: financeiroError } = await supabase.from("financeiro").insert([{
-        agenda_id: novoAgendamento.id,
-        user_id: user.id,
+    const valorFinal =
+      agendamento.servico.valor_promocional ??
+      agendamento.servico.valor ??
+      agendamento.valor ??
+      0;
+
+    // 2. Atualizar status do agendamento
+    const { error: updateError } = await supabase
+      .from("agendamentos")
+      .update({ status: "finalizado" })
+      .eq("id", agendaId);
+
+    if (updateError) throw updateError;
+
+    // 3. Criar financeiro
+    const { data: authData } = await supabase.auth.getUser();
+
+    const { error: financeiroError } = await supabase
+      .from("financeiro")
+      .insert([{
+        agenda_id: agendaId,
+        user_id: authData.user.id,
         tipo: "receita",
-        valor: valor || 0,
-        status: "pendente"
+        valor: valorFinal,
+        status: "confirmado"
       }]);
-      if (financeiroError) throw financeiroError;
 
-      msg.textContent = "Atendimento salvo com sucesso!";
-      msg.style.color = "green";
-      form.reset();
-      carregarAgenda();
+    if (financeiroError) throw financeiroError;
 
-    } catch (err) {
-      console.error("Erro ao salvar agenda:", err);
-      msg.textContent = "Erro ao salvar atendimento.";
-      msg.style.color = "red";
-    }
-  });
+    alert("Atendimento finalizado com sucesso!");
+    carregarAgenda();
+
+  } catch (err) {
+    console.error("Erro ao finalizar atendimento:", err);
+    alert("Erro ao finalizar atendimento.");
+  }
+}
 
   // EXCLUIR AGENDAMENTO
   async function excluirAgendamento(id) {

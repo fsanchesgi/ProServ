@@ -1,98 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>ProServ | Agenda</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+
+<header>
+  <div class="container">
+    <img src="./images/logo.png" height="80">
+    <nav>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="agenda.html" class="active">Agenda</a>
+      <button id="logoutBtn">Sair</button>
+    </nav>
+  </div>
+</header>
+
+<section class="dashboard-page">
+  <h1>📅 Agenda</h1>
+
+  <form id="agenda-form">
+    <input type="text" id="cliente" placeholder="Cliente" required>
+
+    <select id="servico" required></select>
+
+    <input type="date" id="data" required>
+
+    <input type="time" id="hora" required>
+
+    <select id="lembrete">
+      <option value="0">Sem lembrete</option>
+      <option value="24">24h antes</option>
+      <option value="2">2h antes</option>
+    </select>
+
+    <button type="submit">Salvar</button>
+  </form>
+
+  <ul id="lista"></ul>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase.js"></script>
+
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
 
-  const lista = document.getElementById("lista");
+  // ELEMENTOS DOM (DECLARADOS CORRETAMENTE)
   const form = document.getElementById("agenda-form");
-  const servicoSelect = document.getElementById("servico");
+  const lista = document.getElementById("lista");
 
-  // ✅ ELEMENTOS DECLARADOS EXPLICITAMENTE
   const cliente = document.getElementById("cliente");
   const servico = document.getElementById("servico");
-  const dataInput = document.getElementById("data");
+  const dataInput = document.getElementById("data"); // 🔒 NÃO usar "data"
   const hora = document.getElementById("hora");
   const lembrete = document.getElementById("lembrete");
 
-  // Obter usuário
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (!user || userError) {
+  // AUTENTICAÇÃO
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (!auth || !auth.user || authError) {
     location.href = "index.html";
     return;
   }
+
+  const user = auth.user;
 
   document.getElementById("logoutBtn").onclick = async () => {
     await supabase.auth.signOut();
     location.href = "index.html";
   };
 
-  function formatarDataHora(dataISO, hora) {
-    const d = new Date(dataISO);
-    return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()} às ${hora.slice(0,5)}`;
-  }
-
-  function textoLembrete(v) {
-    if (!v || v == 0) return "Sem lembrete";
-    return v == 24 ? "24h antes" : "2h antes";
-  }
-
-  // Carregar serviços
+  // SERVIÇOS
   async function carregarServicos() {
-    const { data, error } = await supabase
+    const { data: servicos, error } = await supabase
       .from("servicos")
       .select("id, nome")
-      .order("nome", { ascending: true });
+      .order("nome");
 
     if (error) {
-      console.error("Erro ao carregar serviços:", error);
+      console.error("Erro serviços:", error);
       return;
     }
 
-    servicoSelect.innerHTML = "<option value=''>Selecione</option>";
-    data.forEach(s => {
-      servicoSelect.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
+    servico.innerHTML = "<option value=''>Serviço</option>";
+    servicos.forEach(s => {
+      servico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
     });
   }
 
-  // ✅ SALVAR AGENDAMENTO (SEM ERRO)
+  // SALVAR AGENDAMENTO
   form.onsubmit = async (e) => {
     e.preventDefault();
 
-    if (!cliente.value.trim()) {
-      alert("Digite o nome do cliente");
+    if (!cliente.value || !servico.value || !dataInput.value || !hora.value) {
+      alert("Preencha todos os campos");
       return;
     }
-
-    if (!servico.value) {
-      alert("Selecione um serviço");
-      return;
-    }
-
-    if (!dataInput.value) {
-      alert("Escolha uma data");
-      return;
-    }
-
-    if (!hora.value) {
-      alert("Escolha uma hora");
-      return;
-    }
-
-    const agendamento = {
-      usuario_id: user.id,
-      cliente_nome: cliente.value.trim(),
-      servico_id: parseInt(servico.value),
-      data_agendamento: dataInput.value,
-      hora: hora.value,
-      lembrete_horas: parseInt(lembrete.value) || 0,
-      status: "pendente"
-    };
 
     const { error } = await supabase
       .from("agendamentos")
-      .insert([agendamento]);
+      .insert([{
+        usuario_id: user.id,
+        cliente_nome: cliente.value.trim(),
+        servico_id: parseInt(servico.value),
+        data_agendamento: dataInput.value,
+        hora: hora.value,
+        lembrete_horas: parseInt(lembrete.value),
+        status: "pendente"
+      }]);
 
     if (error) {
-      console.error("Erro ao salvar agendamento:", error);
-      alert("Erro ao salvar agendamento.");
+      console.error("Erro salvar:", error);
+      alert("Erro ao salvar agendamento");
       return;
     }
 
@@ -100,29 +123,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     carregarAgenda();
   };
 
-  // Carregar agenda
+  // CARREGAR AGENDA
   async function carregarAgenda() {
-    lista.innerHTML = "";
-
-    const { data, error } = await supabase
+    const { data: agendamentos, error } = await supabase
       .from("agendamentos")
       .select("*")
       .eq("usuario_id", user.id)
-      .order("data_agendamento", { ascending: true });
+      .order("data_agendamento");
 
     if (error) {
-      console.error("Erro ao carregar agenda:", error);
+      console.error("Erro agenda:", error);
       return;
     }
 
-    data.forEach(a => {
-      lista.innerHTML += `
-        <li data-id="${a.id}" data-status="${a.status}">
-          <strong>${a.cliente_nome}</strong>
-          <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
-          <small>Lembrete: ${textoLembrete(a.lembrete_horas)}</small>
-        </li>
-      `;
+    lista.innerHTML = "";
+    agendamentos.forEach(a => {
+      lista.innerHTML += `<li>${a.cliente_nome} — ${a.hora}</li>`;
     });
   }
 
@@ -130,3 +146,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   await carregarAgenda();
 });
 </script>
+
+</body>
+</html>

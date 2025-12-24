@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("agenda-form");
   const servicoSelect = document.getElementById("servico");
 
-  // ✅ Obter usuário corretamente
+  // Obter usuário corretamente
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (!user || userError) {
     location.href = "index.html";
@@ -131,7 +131,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return v == 24 ? "24h antes" : "2h antes";
   }
 
-  // ✅ Carregar serviços
+  // Carregar serviços
   async function carregarServicos() {
     const { data, error } = await supabase
       .from("servicos")
@@ -149,7 +149,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // ✅ Formulário de agendamento com tipos corretos
+  // Formulário de agendamento
   form.onsubmit = async (e) => {
     e.preventDefault();
 
@@ -158,7 +158,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const { error } = await supabase.from("agendamentos").insert([{
+    // Valores convertidos corretamente
+    const agendamento = {
       usuario_id: user.id,
       cliente_nome: cliente.value,
       servico_id: parseInt(servico.value),
@@ -166,7 +167,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       hora: hora.value,
       lembrete_horas: parseInt(lembrete.value),
       status: "pendente"
-    }]);
+    };
+
+    console.log("Agendamento enviado:", agendamento);
+
+    const { error } = await supabase.from("agendamentos").insert([agendamento]);
 
     if (error) {
       console.error("Erro ao salvar agendamento:", error);
@@ -178,7 +183,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     carregarAgenda();
   };
 
-  // ✅ Carregar agenda
+  // Carregar agenda
   async function carregarAgenda() {
     lista.innerHTML = "";
 
@@ -210,7 +215,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // ✅ Ações da agenda
+  // Ações da agenda
   lista.addEventListener("click", async (e) => {
     const li = e.target.closest("li");
     if (!li) return;

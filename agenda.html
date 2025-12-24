@@ -9,15 +9,12 @@
   <style>
     body { font-family: Inter, sans-serif; background: #f9fafb; margin: 0; color: #111827; }
     header { background: #111827; padding: 1rem 0; position: sticky; top: 0; z-index: 1000; }
-    header .container { max-width: 100%; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
-    header nav a { color: #fff; text-decoration: none; margin-right: 1.5rem; font-weight: 500; }
+    header .container { padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+    header nav a { color: #fff; text-decoration: none; margin-right: 1.5rem; }
     header nav a.active { border-bottom: 2px solid #4f46e5; }
     header nav button { background: #4f46e5; border: none; color: #fff; padding: .5rem 1rem; border-radius: 6px; cursor: pointer; }
 
     .dashboard-page { max-width: 1200px; margin: 2.5rem auto; padding: 0 2rem; }
-    .dashboard-header h1 { margin: 0; font-size: 2rem; }
-    .dashboard-header p { margin: .25rem 0 2rem; color: #6b7280; }
-
     .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; }
     .dashboard-card { background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
 
@@ -26,12 +23,13 @@
     .agenda-list li.finalizado { background: #e5e7eb; opacity: .75; }
 
     .actions { margin-top: .5rem; }
-    .actions button { margin-right: .5rem; border: none; padding: .4rem .75rem; border-radius: 6px; cursor: pointer; font-size: .85rem; color: #fff; }
+    .actions button { margin-right: .5rem; border: none; padding: .4rem .75rem; border-radius: 6px; font-size: .85rem; color: #fff; cursor: pointer; }
     .btn-finalizar { background: #10b981; }
-    .btn-excluir { background: #ef4444; }
     .btn-editar { background: #2563eb; }
+    .btn-excluir { background: #ef4444; }
 
     small { display: block; color: #6b7280; }
+    .btn-primary { background: #4f46e5; color: #fff; border: none; padding: .6rem 1.2rem; border-radius: 8px; cursor: pointer; }
   </style>
 </head>
 
@@ -49,10 +47,6 @@
 </header>
 
 <section class="dashboard-page">
-  <div class="dashboard-header">
-    <h1>📅 Agenda</h1>
-    <p>Gerencie seus atendimentos</p>
-  </div>
 
   <div class="cards-grid">
 
@@ -87,21 +81,35 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
   const lista = document.getElementById("lista");
+  const form = document.getElementById("agenda-form");
   const cliente = document.getElementById("cliente");
   const servico = document.getElementById("servico");
   const dataInput = document.getElementById("data");
   const hora = document.getElementById("hora");
   const lembrete = document.getElementById("lembrete");
-  const form = document.getElementById("agenda-form");
 
   let editandoId = null;
 
   const { data: auth } = await supabase.auth.getUser();
+  if (!auth?.user) {
+    location.href = "index.html";
+    return;
+  }
   const user = auth.user;
 
-  async function formatarDataHora(d, h) {
-    const dt = new Date(d);
-    return `${String(dt.getDate()).padStart(2,"0")}/${String(dt.getMonth()+1).padStart(2,"0")}/${dt.getFullYear()} às ${h.slice(0,5)}`;
+  document.getElementById("logoutBtn").onclick = async () => {
+    await supabase.auth.signOut();
+    location.href = "index.html";
+  };
+
+  function textoLembrete(v) {
+    if (!v || v == 0) return "Sem lembrete";
+    return v == 24 ? "Lembrete: 24h antes" : "Lembrete: 2h antes";
+  }
+
+  function formatarDataHora(dataISO, hora) {
+    const d = new Date(dataISO);
+    return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()} às ${hora.slice(0,5)}`;
   }
 
   async function carregarServicos() {
@@ -111,41 +119,85 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function carregarAgenda() {
-  const { data: agendamentos } = await supabase
-    .from("agendamentos")
-    .select(`
-      id,
-      cliente_nome,
-      data_agendamento,
-      hora,
-      lembrete_horas,
-      status,
-      servico_id,
-      servicos:servico_id ( nome )
-    `)
-    .eq("usuario_id", user.id)
-    .order("data_agendamento");
+    const { data } = await supabase
+      .from("agendamentos")
+      .select(`
+        id, cliente_nome, data_agendamento, hora,
+        lembrete_horas, status, servico_id,
+        servicos:servico_id ( nome )
+      `)
+      .eq("usuario_id", user.id)
+      .order("data_agendamento");
 
-  lista.innerHTML = "";
+    lista.innerHTML = "";
 
-  agendamentos.forEach(a => {
-    lista.innerHTML += `
-      <li class="${a.status === "finalizado" ? "finalizado" : ""}" data-id="${a.id}">
-        <strong>${a.cliente_nome}</strong>
-        <small>Serviço: ${a.servicos && a.servicos.nome ? a.servicos.nome : "Não informado"}</small>
-        <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
-        <small>${textoLembrete(a.lembrete_horas)}</small>
+    data.forEach(a => {
+      lista.innerHTML += `
+        <li class="${a.status === "finalizado" ? "finalizado" : ""}" data-id="${a.id}">
+          <strong>${a.cliente_nome}</strong>
+          <small>Serviço: ${a.servicos?.nome || "Não informado"}</small>
+          <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
+          <small>${textoLembrete(a.lembrete_horas)}</small>
 
-        <div class="actions">
-          ${a.status === "pendente" ? `<button class="btn-finalizar">Finalizar</button>` : ""}
-          <button class="btn-editar">Alterar</button>
-          <button class="btn-excluir">Excluir</button>
-        </div>
-      </li>
-    `;
-  });
-}
+          <div class="actions">
+            ${a.status === "pendente" ? `<button class="btn-finalizar">Finalizar</button>` : ""}
+            <button class="btn-editar">Alterar</button>
+            <button class="btn-excluir">Excluir</button>
+          </div>
+        </li>
+      `;
+    });
+  }
 
+  form.onsubmit = async e => {
+    e.preventDefault();
+
+    const payload = {
+      cliente_nome: cliente.value.trim(),
+      servico_id: Number(servico.value),
+      data_agendamento: dataInput.value,
+      hora: hora.value,
+      lembrete_horas: Number(lembrete.value) || 0
+    };
+
+    if (editandoId) {
+      await supabase.from("agendamentos").update(payload).eq("id", editandoId);
+    } else {
+      await supabase.from("agendamentos").insert([{ ...payload, usuario_id: user.id, status: "pendente" }]);
+    }
+
+    form.reset();
+    editandoId = null;
+    carregarAgenda();
+  };
+
+  lista.onclick = async e => {
+    const li = e.target.closest("li");
+    if (!li) return;
+    const id = li.dataset.id;
+
+    if (e.target.classList.contains("btn-editar")) {
+      const { data } = await supabase.from("agendamentos").select("*").eq("id", id).single();
+      cliente.value = data.cliente_nome;
+      servico.value = data.servico_id;
+      dataInput.value = data.data_agendamento;
+      hora.value = data.hora;
+      lembrete.value = data.lembrete_horas;
+      editandoId = id;
+    }
+
+    if (e.target.classList.contains("btn-finalizar")) {
+      await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id);
+      carregarAgenda();
+    }
+
+    if (e.target.classList.contains("btn-excluir")) {
+      if (confirm("Excluir atendimento?")) {
+        await supabase.from("agendamentos").delete().eq("id", id);
+        carregarAgenda();
+      }
+    }
+  };
 
   await carregarServicos();
   await carregarAgenda();

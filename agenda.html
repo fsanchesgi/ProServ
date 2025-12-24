@@ -113,15 +113,17 @@ let servicoEditandoId = null;
   let editandoId = null;
   let mapaServicos = {};
 
-  const { data } = await supabase.auth.getSession();
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
-if (!data.session) {
+if (sessionError || !sessionData.session) {
+  console.error("Sessão inválida:", sessionError);
   location.href = "index.html";
   return;
 }
 
-user = data.session.user;
-console.log("USER ID:", user.id);
+const user = sessionData.session.user;
+console.log("USER ID CONFIRMADO:", user.id);
+
 
 
   function formatarDataHora(dataISO, hora) {

@@ -246,9 +246,19 @@ const servicoId = Number(servico.value);
 
 
     if (btn.classList.contains("btn-finalizar")) {
-      await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id);
-      carregarAgenda();
-    }
+  const { error } = await supabase
+    .from("agendamentos")
+    .update({ status: "finalizado" })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Erro ao finalizar:", error);
+    alert("Erro ao finalizar atendimento");
+    return;
+  }
+
+  carregarAgenda();
+}
 
     if (btn.classList.contains("btn-excluir")) {
       if (confirm("Excluir atendimento?")) {

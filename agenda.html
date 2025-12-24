@@ -144,31 +144,47 @@ let servicoEditandoId = null;
   }
 
   async function carregarAgenda() {
-    const { data } = await supabase
-      .from("agendamentos")
-      .select("*")
-      .eq("usuario_id", user.id)
-      .order("data_agendamento");
+  const { data, error } = await supabase
+    .from("agendamentos")
+    .select(`
+      id,
+      cliente_nome,
+      data_agendamento,
+      hora,
+      lembrete_horas,
+      status,
+      servico:servicos!agendamentos_servico_id_fkey (
+        nome
+      )
+    `)
+    .eq("usuario_id", user.id)
+    .order("data_agendamento");
 
-    lista.innerHTML = "";
-
-    data.forEach(a => {
-      lista.innerHTML += `
-        <li data-id="${a.id}" class="${a.status === "finalizado" ? "finalizado" : ""}">
-          <strong>${a.cliente_nome}</strong>
-          <small>Serviço: ${mapaServicos[Number(a.servico_id)] ?? "Não informado"}</small>
-          <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
-          <small>${textoLembrete(a.lembrete_horas)}</small>
-
-          <div class="actions">
-            ${a.status === "pendente" ? `<button class="btn-finalizar">Finalizar</button>` : ""}
-            <button class="btn-editar">Alterar</button>
-            <button class="btn-excluir">Excluir</button>
-          </div>
-        </li>
-      `;
-    });
+  if (error) {
+    console.error("Erro ao carregar agenda:", error);
+    return;
   }
+
+  lista.innerHTML = "";
+
+  data.forEach(a => {
+    lista.innerHTML += `
+      <li data-id="${a.id}" class="${a.status === "finalizado" ? "finalizado" : ""}">
+        <strong>${a.cliente_nome}</strong>
+        <small>Serviço: ${a.servico?.nome ?? "Não informado"}</small>
+        <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
+        <small>${textoLembrete(a.lembrete_horas)}</small>
+
+        <div class="actions">
+          ${a.status === "pendente" ? `<button class="btn-finalizar">Finalizar</button>` : ""}
+          <button class="btn-editar">Alterar</button>
+          <button class="btn-excluir">Excluir</button>
+        </div>
+      </li>
+    `;
+  });
+}
+
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();

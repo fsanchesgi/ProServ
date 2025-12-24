@@ -171,7 +171,7 @@ let servicoEditandoId = null;
     lista.innerHTML += `
       <li data-id="${a.id}" class="${a.status === "finalizado" ? "finalizado" : ""}">
         <strong>${a.cliente_nome}</strong>
-        <small>Serviço: ${a.servico?.nome ?? "Não informado"}</small>
+        <small>Serviço: ${a.servicos?.nome ?? "Não informado"}</small>
         <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
         <small>${textoLembrete(a.lembrete_horas)}</small>
 

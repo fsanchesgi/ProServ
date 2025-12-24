@@ -193,43 +193,52 @@ console.log("USER ID CONFIRMADO:", user.id);
 
 
   form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!servico.value) {
-  alert("Selecione um serviço");
-  return;
-}
+  if (!servico.value) {
+    alert("Selecione um serviço");
+    return;
+  }
 
-const servicoId = Number(servico.value || servicoEditandoId);
+  const servicoId = String(servico.value);
 
-    const payload = {
-      cliente_nome: cliente.value.trim(),
-      servico_id: servicoId,
-      data_agendamento: dataInput.value,
-      hora: hora.value,
-      lembrete_horas: Number(lembrete.value) || 0
-    };
+  const payload = {
+    cliente_nome: cliente.value.trim(),
+    servico_id: servicoId,
+    data_agendamento: dataInput.value,
+    hora: hora.value,
+    lembrete_horas: Number(lembrete.value) || 0,
+    usuario_id: user.id // 🔒 OBRIGATÓRIO PARA INSERT E UPDATE
+  };
 
-    if (editandoId) {
-  await supabase
-    .from("agendamentos")
-    .update({
-      ...payload,
-      usuario_id: user.id // 🔒 OBRIGATÓRIO PARA RLS
-    })
-    .eq("id", editandoId);
-} else {
-      await supabase.from("agendamentos").insert([{
+  let result;
+
+  if (editandoId) {
+    result = await supabase
+      .from("agendamentos")
+      .update(payload)
+      .eq("id", editandoId);
+  } else {
+    result = await supabase
+      .from("agendamentos")
+      .insert({
         ...payload,
-        usuario_id: user.id,
         status: "pendente"
-      }]);
-    }
+      });
+  }
 
-    form.reset();
-    editandoId = null;
-    carregarAgenda();
-  });
+  if (result.error) {
+    console.error("Erro Supabase:", result.error);
+    alert(result.error.message);
+    return;
+  }
+
+  form.reset();
+  editandoId = null;
+  servicoEditandoId = null;
+  carregarAgenda();
+});
+
 
   lista.addEventListener("click", async (e) => {
     const btn = e.target;

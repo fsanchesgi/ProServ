@@ -18,10 +18,6 @@
     .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; }
     .dashboard-card { background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
 
-    .form-group { margin-bottom: 1rem; }
-    label { display: block; font-weight: 500; margin-bottom: .25rem; }
-    input, select { width: 100%; padding: .5rem; border-radius: 6px; border: 1px solid #d1d5db; }
-
     .agenda-list { list-style: none; padding: 0; margin: 0; }
     .agenda-list li { background: #f3f4f6; border-radius: 8px; padding: .75rem 1rem; margin-bottom: .75rem; }
     .agenda-list li.finalizado { background: #e5e7eb; opacity: .75; }
@@ -31,9 +27,9 @@
     .btn-finalizar { background: #10b981; }
     .btn-editar { background: #2563eb; }
     .btn-excluir { background: #ef4444; }
-    .btn-primary { background: #4f46e5; color: #fff; border: none; padding: .6rem 1.2rem; border-radius: 8px; cursor: pointer; }
 
     small { display: block; color: #6b7280; }
+    .btn-primary { background: #4f46e5; color: #fff; border: none; padding: .6rem 1.2rem; border-radius: 8px; cursor: pointer; }
   </style>
 </head>
 
@@ -105,6 +101,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const lista = document.getElementById("lista");
   const form = document.getElementById("agenda-form");
+
   const cliente = document.getElementById("cliente");
   const servico = document.getElementById("servico");
   const dataInput = document.getElementById("data");
@@ -115,7 +112,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   let mapaServicos = {};
 
   const { data: auth } = await supabase.auth.getUser();
-  if (!auth?.user) return location.href = "index.html";
+  if (!auth?.user) {
+    location.href = "index.html";
+    return;
+  }
   const user = auth.user;
 
   document.getElementById("logoutBtn").onclick = async () => {
@@ -123,14 +123,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     location.href = "index.html";
   };
 
-  function textoLembrete(v) {
-    if (!v || v == 0) return "Sem lembrete";
-    return v == 24 ? "Lembrete: 24h antes" : "Lembrete: 2h antes";
-  }
-
   function formatarDataHora(d, h) {
     const dt = new Date(d);
     return `${String(dt.getDate()).padStart(2,"0")}/${String(dt.getMonth()+1).padStart(2,"0")}/${dt.getFullYear()} às ${h.slice(0,5)}`;
+  }
+
+  function textoLembrete(v) {
+    if (!v || v == 0) return "Sem lembrete";
+    return v == 24 ? "Lembrete: 24h antes" : "Lembrete: 2h antes";
   }
 
   async function carregarServicos() {
@@ -141,6 +141,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       servico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
     });
   }
+
+  form.onsubmit = async e => {
+    e.preventDefault();
+
+    const payload = {
+      cliente_nome: cliente.value.trim(),
+      servico_id: Number(servico.value),
+      data_agendamento: dataInput.value,
+      hora: hora.value,
+      lembrete_horas: Number(lembrete.value) || 0
+    };
+
+    if (editandoId) {
+      await supabase.from("agendamentos").update(payload).eq("id", editandoId);
+    } else {
+      await supabase.from("agendamentos").insert([{ ...payload, usuario_id: user.id, status: "pendente" }]);
+    }
+
+    form.reset();
+    editandoId = null;
+    carregarAgenda();
+  };
 
   async function carregarAgenda() {
     const { data } = await supabase
@@ -169,8 +191,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // handlers permanecem iguais (editar / excluir / finalizar / salvar)
-  // fluxo NÃO foi alterado
+  lista.onclick = async e => {
+    const li = e.target.closest("li");
+    if (!li) return;
+
+    const id = li.dataset.id;
+
+    if (e.target.classList.contains("btn-editar")) {
+      const { data } = await supabase.from("agendamentos").select("*").eq("id", id).single();
+      cliente.value = data.cliente_nome;
+      servico.value = data.servico_id;
+      dataInput.value = data.data_agendamento;
+      hora.value = data.hora;
+      lembrete.value = data.lembrete_horas;
+      editandoId = id;
+    }
+
+    if (e.target.classList.contains("btn-finalizar")) {
+      await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id);
+      carregarAgenda();
+    }
+
+    if (e.target.classList.contains("btn-excluir")) {
+      if (confirm("Excluir atendimento?")) {
+        await supabase.from("agendamentos").delete().eq("id", id);
+        carregarAgenda();
+      }
+    }
+  };
 
   await carregarServicos();
   await carregarAgenda();

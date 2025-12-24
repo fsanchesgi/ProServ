@@ -137,6 +137,10 @@ let servicoEditandoId = null;
       mapaServicos[s.id] = s.nome;
       servico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
     });
+     // ✅ AJUSTE DEFINITIVO
+  if (servicoEditandoId) {
+    servico.value = String(servicoEditandoId);
+  }
   }
 
   async function carregarAgenda() {
@@ -214,10 +218,6 @@ let servicoEditandoId = null;
 
   cliente.value = data.cliente_nome;
 
-  // 🔒 AJUSTES CRÍTICOS
-  setTimeout(() => {
-  servico.value = String(data.servico_id);
-}, 0);
   dataInput.value = data.data_agendamento.split("T")[0];
 
   hora.value = data.hora;

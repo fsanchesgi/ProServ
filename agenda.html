@@ -138,16 +138,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // 🔒 AJUSTE APENAS NO BOTÃO SALVAR
   form.onsubmit = async (e) => {
     e.preventDefault();
+
+    if (!cliente.value.trim()) {
+      alert("Informe o cliente");
+      return;
+    }
+
+    if (!servico.value) {
+      alert("Selecione um serviço");
+      return;
+    }
+
+    if (!dataInput.value || !hora.value) {
+      alert("Informe data e hora");
+      return;
+    }
 
     const { error } = await supabase.from("agendamentos").insert([{
       usuario_id: user.id,
       cliente_nome: cliente.value.trim(),
-      servico_id: parseInt(servico.value),
+      servico_id: Number(servico.value),           // ✔ nunca NaN
       data_agendamento: dataInput.value,
       hora: hora.value,
-      lembrete_horas: parseInt(lembrete.value),
+      lembrete_horas: Number(lembrete.value) || 0, // ✔ fallback seguro
       status: "pendente"
     }]);
 

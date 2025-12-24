@@ -149,22 +149,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // ✅ Formulário de agendamento
+  // ✅ Formulário de agendamento com tipos corretos
   form.onsubmit = async (e) => {
     e.preventDefault();
+
+    if (!servico.value) {
+      alert("Selecione um serviço");
+      return;
+    }
 
     const { error } = await supabase.from("agendamentos").insert([{
       usuario_id: user.id,
       cliente_nome: cliente.value,
-      servico_id: servico.value,
+      servico_id: parseInt(servico.value),
       data_agendamento: data.value,
       hora: hora.value,
-      lembrete_horas: lembrete.value,
+      lembrete_horas: parseInt(lembrete.value),
       status: "pendente"
     }]);
 
     if (error) {
       console.error("Erro ao salvar agendamento:", error);
+      alert("Erro ao salvar agendamento. Confira os campos e tente novamente.");
       return;
     }
 
@@ -172,7 +178,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     carregarAgenda();
   };
 
-  // ✅ Carregar agenda corretamente
+  // ✅ Carregar agenda
   async function carregarAgenda() {
     lista.innerHTML = "";
 

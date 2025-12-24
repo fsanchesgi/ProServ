@@ -98,6 +98,7 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
+let user = null;
 let servicoEditandoId = null;
   
   const lista = document.getElementById("lista");
@@ -119,7 +120,7 @@ if (!data.session) {
   return;
 }
 
-const user = data.session.user;
+user = data.session.user;
 console.log("USER ID:", user.id);
 
 

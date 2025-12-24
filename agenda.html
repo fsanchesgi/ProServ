@@ -210,8 +210,14 @@ const servicoId = Number(servico.value || servicoEditandoId);
     };
 
     if (editandoId) {
-      await supabase.from("agendamentos").update(payload).eq("id", editandoId);
-    } else {
+  await supabase
+    .from("agendamentos")
+    .update({
+      ...payload,
+      usuario_id: user.id // 🔒 OBRIGATÓRIO PARA RLS
+    })
+    .eq("id", editandoId);
+} else {
       await supabase.from("agendamentos").insert([{
         ...payload,
         usuario_id: user.id,

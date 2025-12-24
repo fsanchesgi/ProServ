@@ -241,7 +241,8 @@ const servicoId = Number(servico.value);
   lembrete.value = data.lembrete_horas;
 
   editandoId = id;
-  servicoEditandoId = data.servico_id; // 🔒 LINHA CRÍTICA
+servicoEditandoId = data.servico_id;
+servico.value = String(data.servico_id); // ✅ LINHA CRÍTICA
 }
 
 

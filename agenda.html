@@ -215,7 +215,9 @@ let servicoEditandoId = null;
   cliente.value = data.cliente_nome;
 
   // 🔒 AJUSTES CRÍTICOS
+  setTimeout(() => {
   servico.value = String(data.servico_id);
+}, 0);
   dataInput.value = data.data_agendamento.split("T")[0];
 
   hora.value = data.hora;

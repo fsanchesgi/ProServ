@@ -113,6 +113,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const hora = document.getElementById("hora");
   const lembrete = document.getElementById("lembrete");
 
+  let editandoId = null; // 🔒 CONTROLE DE EDIÇÃO
+
   const { data: auth } = await supabase.auth.getUser();
   if (!auth || !auth.user) {
     location.href = "index.html";
@@ -138,34 +140,38 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // 🔒 AJUSTE APENAS NO BOTÃO SALVAR
   form.onsubmit = async (e) => {
     e.preventDefault();
 
-    if (!cliente.value.trim()) {
-      alert("Informe o cliente");
+    if (!cliente.value || !servico.value || !dataInput.value || !hora.value) {
+      alert("Preencha todos os campos");
       return;
     }
 
-    if (!servico.value) {
-      alert("Selecione um serviço");
-      return;
-    }
-
-    if (!dataInput.value || !hora.value) {
-      alert("Informe data e hora");
-      return;
-    }
-
-    const { error } = await supabase.from("agendamentos").insert([{
-      usuario_id: user.id,
+    const payload = {
       cliente_nome: cliente.value.trim(),
-      servico_id: Number(servico.value),           // ✔ nunca NaN
+      servico_id: Number(servico.value),
       data_agendamento: dataInput.value,
       hora: hora.value,
-      lembrete_horas: Number(lembrete.value) || 0, // ✔ fallback seguro
-      status: "pendente"
-    }]);
+      lembrete_horas: Number(lembrete.value) || 0
+    };
+
+    let error;
+
+    if (editandoId) {
+      ({ error } = await supabase
+        .from("agendamentos")
+        .update(payload)
+        .eq("id", editandoId));
+    } else {
+      ({ error } = await supabase
+        .from("agendamentos")
+        .insert([{
+          ...payload,
+          usuario_id: user.id,
+          status: "pendente"
+        }]));
+    }
 
     if (error) {
       console.error(error);
@@ -174,6 +180,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     form.reset();
+    editandoId = null;
     carregarAgenda();
   };
 
@@ -187,7 +194,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     lista.innerHTML = "";
     agendamentos.forEach(a => {
       lista.innerHTML += `
-        <li data-id="${a.id}" data-status="${a.status}">
+        <li data-id="${a.id}">
           <strong>${a.cliente_nome}</strong>
           <small>${a.data_agendamento} às ${a.hora}</small>
           <div class="actions">
@@ -206,8 +213,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const id = li.dataset.id;
 
+    if (e.target.classList.contains("btn-editar")) {
+      const { data } = await supabase
+        .from("agendamentos")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      cliente.value = data.cliente_nome;
+      servico.value = data.servico_id;
+      dataInput.value = data.data_agendamento;
+      hora.value = data.hora;
+      lembrete.value = data.lembrete_horas;
+
+      editandoId = id;
+    }
+
     if (e.target.classList.contains("btn-finalizar")) {
-      await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id);
+      await supabase.from("agendamentos")
+        .update({ status: "finalizado" })
+        .eq("id", id);
       carregarAgenda();
     }
 
@@ -216,10 +241,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         await supabase.from("agendamentos").delete().eq("id", id);
         carregarAgenda();
       }
-    }
-
-    if (e.target.classList.contains("btn-editar")) {
-      alert("Edição prevista para próxima etapa");
     }
   };
 

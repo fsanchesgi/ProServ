@@ -1,113 +1,16 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>ProServ | Agenda</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="./style.css">
-
-  <style>
-    body { font-family: Inter, sans-serif; background: #f9fafb; margin: 0; color: #111827; }
-    header { background: #111827; padding: 1rem 0; position: sticky; top: 0; z-index: 1000; }
-    header .container { max-width: 100%; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
-    header nav a { color: #fff; text-decoration: none; margin-right: 1.5rem; font-weight: 500; }
-    header nav a.active { border-bottom: 2px solid #4f46e5; }
-    header nav button { background: #4f46e5; border: none; color: #fff; padding: .5rem 1rem; border-radius: 6px; cursor: pointer; }
-    .dashboard-page { max-width: 1200px; margin: 2.5rem auto; padding: 0 2rem; }
-    .dashboard-header h1 { margin: 0; font-size: 2rem; }
-    .dashboard-header p { margin: .25rem 0 2rem; color: #6b7280; }
-    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; }
-    .dashboard-card { background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
-    .form-group { margin-bottom: 1rem; }
-    label { font-weight: 500; display: block; margin-bottom: .25rem; }
-    input, select { width: 100%; padding: .5rem; border-radius: 6px; border: 1px solid #d1d5db; }
-    .btn-primary { background: #4f46e5; color: #fff; border: none; padding: .6rem 1.2rem; border-radius: 8px; cursor: pointer; }
-    .agenda-list { list-style: none; padding: 0; margin: 0; }
-    .agenda-list li { background: #f3f4f6; border-radius: 8px; padding: .75rem 1rem; margin-bottom: .75rem; }
-    .actions { margin-top: .5rem; }
-    .actions button { margin-right: .5rem; border: none; padding: .4rem .75rem; border-radius: 6px; cursor: pointer; font-size: .85rem; color: #fff; }
-    .btn-finalizar { background: #10b981; }
-    .btn-excluir { background: #ef4444; }
-    .btn-editar { background: #2563eb; }
-    small { display: block; color: #6b7280; }
-  </style>
-</head>
-
-<body>
-
-<header>
-  <div class="container">
-    <img src="./images/logo.png" height="80">
-    <nav>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="agenda.html" class="active">Agenda</a>
-      <button id="logoutBtn">Sair</button>
-    </nav>
-  </div>
-</header>
-
-<section class="dashboard-page">
-  <div class="dashboard-header">
-    <h1>📅 Agenda</h1>
-    <p>Gerencie seus atendimentos</p>
-  </div>
-
-  <div class="cards-grid">
-
-    <div class="dashboard-card">
-      <h3>Novo Atendimento</h3>
-      <form id="agenda-form">
-        <div class="form-group">
-          <label>Cliente</label>
-          <input type="text" id="cliente" required>
-        </div>
-
-        <div class="form-group">
-          <label>Serviço</label>
-          <select id="servico" required></select>
-        </div>
-
-        <div class="form-group">
-          <label>Data</label>
-          <input type="date" id="data" required>
-        </div>
-
-        <div class="form-group">
-          <label>Hora</label>
-          <input type="time" id="hora" required>
-        </div>
-
-        <div class="form-group">
-          <label>Lembrete</label>
-          <select id="lembrete">
-            <option value="0">Sem lembrete</option>
-            <option value="24">24 horas antes</option>
-            <option value="2">2 horas antes</option>
-          </select>
-        </div>
-
-        <button class="btn-primary" type="submit">Salvar</button>
-        <p id="msg"></p>
-      </form>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>Atendimentos</h3>
-      <ul id="lista" class="agenda-list"></ul>
-    </div>
-
-  </div>
-</section>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./supabase.js"></script>
-
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
 
   const lista = document.getElementById("lista");
   const form = document.getElementById("agenda-form");
   const servicoSelect = document.getElementById("servico");
+
+  // ✅ ELEMENTOS DECLARADOS EXPLICITAMENTE
+  const cliente = document.getElementById("cliente");
+  const servico = document.getElementById("servico");
+  const dataInput = document.getElementById("data");
+  const hora = document.getElementById("hora");
+  const lembrete = document.getElementById("lembrete");
 
   // Obter usuário
   const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -149,7 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Formulário de agendamento com validação completa
+  // ✅ SALVAR AGENDAMENTO (SEM ERRO)
   form.onsubmit = async (e) => {
     e.preventDefault();
 
@@ -163,7 +66,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    if (!data.value) {
+    if (!dataInput.value) {
       alert("Escolha uma data");
       return;
     }
@@ -177,19 +80,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       usuario_id: user.id,
       cliente_nome: cliente.value.trim(),
       servico_id: parseInt(servico.value),
-      data_agendamento: data.value,
+      data_agendamento: dataInput.value,
       hora: hora.value,
       lembrete_horas: parseInt(lembrete.value) || 0,
       status: "pendente"
     };
 
-    console.log("Agendamento enviado:", agendamento);
-
-    const { error } = await supabase.from("agendamentos").insert([agendamento]);
+    const { error } = await supabase
+      .from("agendamentos")
+      .insert([agendamento]);
 
     if (error) {
       console.error("Erro ao salvar agendamento:", error);
-      alert("Erro ao salvar agendamento. Confira os campos e tente novamente.");
+      alert("Erro ao salvar agendamento.");
       return;
     }
 
@@ -218,52 +121,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           <strong>${a.cliente_nome}</strong>
           <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
           <small>Lembrete: ${textoLembrete(a.lembrete_horas)}</small>
-
-          <div class="actions">
-            ${a.status === "pendente" ? `<button class="btn-finalizar">Finalizar</button>` : ""}
-            <button class="btn-editar">Alterar</button>
-            <button class="btn-excluir">Excluir</button>
-          </div>
         </li>
       `;
     });
   }
 
-  // Ações da agenda
-  lista.addEventListener("click", async (e) => {
-    const li = e.target.closest("li");
-    if (!li) return;
-
-    const id = li.dataset.id;
-    const status = li.dataset.status;
-
-    if (e.target.classList.contains("btn-finalizar")) {
-      await supabase.from("agendamentos")
-        .update({ status: "finalizado" })
-        .eq("id", id);
-      carregarAgenda();
-    }
-
-    if (e.target.classList.contains("btn-excluir")) {
-      if (confirm("Excluir atendimento?")) {
-        await supabase.from("agendamentos").delete().eq("id", id);
-        carregarAgenda();
-      }
-    }
-
-    if (e.target.classList.contains("btn-editar")) {
-      if (status === "finalizado") {
-        alert("Agendamento finalizado não pode ser editado.");
-        return;
-      }
-      alert("Edição pronta para o próximo passo.");
-    }
-  });
-
   await carregarServicos();
   await carregarAgenda();
 });
 </script>
-
-</body>
-</html>

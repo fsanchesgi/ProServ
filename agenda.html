@@ -173,11 +173,12 @@ let servicoEditandoId = null;
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const servicoId = parseInt(servico.value, 10);
-    if (isNaN(servicoId)) {
-      alert("Selecione um serviço");
-      return;
-    }
+    if (!servico.value) {
+  alert("Selecione um serviço");
+  return;
+}
+
+const servicoId = Number(servico.value);
 
     const payload = {
       cliente_nome: cliente.value.trim(),

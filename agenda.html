@@ -118,11 +118,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   const user = auth.user;
 
-  document.getElementById("logoutBtn").onclick = async () => {
-    await supabase.auth.signOut();
-    location.href = "index.html";
-  };
-
   function formatarDataHora(d, h) {
     const dt = new Date(d);
     return `${String(dt.getDate()).padStart(2,"0")}/${String(dt.getMonth()+1).padStart(2,"0")}/${dt.getFullYear()} às ${h.slice(0,5)}`;
@@ -136,33 +131,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function carregarServicos() {
     const { data } = await supabase.from("servicos").select("id, nome");
     servico.innerHTML = "<option value=''>Selecione</option>";
+
     data.forEach(s => {
       mapaServicos[s.id] = s.nome;
       servico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
     });
   }
-
-  form.onsubmit = async e => {
-    e.preventDefault();
-
-    const payload = {
-      cliente_nome: cliente.value.trim(),
-      servico_id: Number(servico.value),
-      data_agendamento: dataInput.value,
-      hora: hora.value,
-      lembrete_horas: Number(lembrete.value) || 0
-    };
-
-    if (editandoId) {
-      await supabase.from("agendamentos").update(payload).eq("id", editandoId);
-    } else {
-      await supabase.from("agendamentos").insert([{ ...payload, usuario_id: user.id, status: "pendente" }]);
-    }
-
-    form.reset();
-    editandoId = null;
-    carregarAgenda();
-  };
 
   async function carregarAgenda() {
     const { data } = await supabase
@@ -175,7 +149,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     data.forEach(a => {
       lista.innerHTML += `
-        <li class="${a.status === "finalizado" ? "finalizado" : ""}" data-id="${a.id}">
+        <li data-id="${a.id}" class="${a.status === "finalizado" ? "finalizado" : ""}">
           <strong>${a.cliente_nome}</strong>
           <small>Serviço: ${mapaServicos[a.servico_id] || "Não informado"}</small>
           <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
@@ -191,13 +165,46 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  lista.onclick = async e => {
-    const li = e.target.closest("li");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const servicoId = parseInt(servico.value, 10);
+    if (isNaN(servicoId)) {
+      alert("Selecione um serviço");
+      return;
+    }
+
+    const payload = {
+      cliente_nome: cliente.value.trim(),
+      servico_id: servicoId,
+      data_agendamento: dataInput.value,
+      hora: hora.value,
+      lembrete_horas: Number(lembrete.value) || 0
+    };
+
+    if (editandoId) {
+      await supabase.from("agendamentos").update(payload).eq("id", editandoId);
+    } else {
+      await supabase.from("agendamentos").insert([{
+        ...payload,
+        usuario_id: user.id,
+        status: "pendente"
+      }]);
+    }
+
+    form.reset();
+    editandoId = null;
+    carregarAgenda();
+  });
+
+  lista.addEventListener("click", async (e) => {
+    const btn = e.target;
+    const li = btn.closest("li");
     if (!li) return;
 
     const id = li.dataset.id;
 
-    if (e.target.classList.contains("btn-editar")) {
+    if (btn.classList.contains("btn-editar")) {
       const { data } = await supabase.from("agendamentos").select("*").eq("id", id).single();
       cliente.value = data.cliente_nome;
       servico.value = data.servico_id;
@@ -207,18 +214,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       editandoId = id;
     }
 
-    if (e.target.classList.contains("btn-finalizar")) {
+    if (btn.classList.contains("btn-finalizar")) {
       await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id);
       carregarAgenda();
     }
 
-    if (e.target.classList.contains("btn-excluir")) {
+    if (btn.classList.contains("btn-excluir")) {
       if (confirm("Excluir atendimento?")) {
         await supabase.from("agendamentos").delete().eq("id", id);
         carregarAgenda();
       }
     }
-  };
+  });
 
   await carregarServicos();
   await carregarAgenda();

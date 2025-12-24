@@ -7,139 +7,29 @@
   <link rel="stylesheet" href="./style.css">
 
   <style>
-    body {
-      font-family: Inter, sans-serif;
-      background: #f9fafb;
-      margin: 0;
-      color: #111827;
-    }
-
-    header {
-      background: #111827;
-      padding: 1rem 0;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-
-    header .container {
-      max-width: 100%;
-      padding: 0 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    header nav a {
-      color: #fff;
-      text-decoration: none;
-      margin-right: 1.5rem;
-      font-weight: 500;
-    }
-
-    header nav a.active {
-      border-bottom: 2px solid #4f46e5;
-    }
-
-    header nav button {
-      background: #4f46e5;
-      border: none;
-      color: #fff;
-      padding: .5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .dashboard-page {
-      max-width: 1200px;
-      margin: 2.5rem auto;
-      padding: 0 2rem;
-    }
-
-    .dashboard-header h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-
-    .dashboard-header p {
-      margin: .25rem 0 2rem;
-      color: #6b7280;
-    }
-
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 2rem;
-    }
-
-    .dashboard-card {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,.05);
-    }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    label {
-      font-weight: 500;
-      display: block;
-      margin-bottom: .25rem;
-    }
-
-    input, select {
-      width: 100%;
-      padding: .5rem;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-    }
-
-    .btn-primary {
-      background: #4f46e5;
-      color: #fff;
-      border: none;
-      padding: .6rem 1.2rem;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .agenda-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .agenda-list li {
-      background: #f3f4f6;
-      border-radius: 8px;
-      padding: .75rem 1rem;
-      margin-bottom: .75rem;
-    }
-
-    .actions {
-      margin-top: .5rem;
-    }
-
-    .actions button {
-      margin-right: .5rem;
-      border: none;
-      padding: .4rem .75rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: .85rem;
-      color: #fff;
-    }
-
+    body { font-family: Inter, sans-serif; background: #f9fafb; margin: 0; color: #111827; }
+    header { background: #111827; padding: 1rem 0; position: sticky; top: 0; z-index: 1000; }
+    header .container { max-width: 100%; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+    header nav a { color: #fff; text-decoration: none; margin-right: 1.5rem; font-weight: 500; }
+    header nav a.active { border-bottom: 2px solid #4f46e5; }
+    header nav button { background: #4f46e5; border: none; color: #fff; padding: .5rem 1rem; border-radius: 6px; cursor: pointer; }
+    .dashboard-page { max-width: 1200px; margin: 2.5rem auto; padding: 0 2rem; }
+    .dashboard-header h1 { margin: 0; font-size: 2rem; }
+    .dashboard-header p { margin: .25rem 0 2rem; color: #6b7280; }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; }
+    .dashboard-card { background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
+    .form-group { margin-bottom: 1rem; }
+    label { font-weight: 500; display: block; margin-bottom: .25rem; }
+    input, select { width: 100%; padding: .5rem; border-radius: 6px; border: 1px solid #d1d5db; }
+    .btn-primary { background: #4f46e5; color: #fff; border: none; padding: .6rem 1.2rem; border-radius: 8px; cursor: pointer; }
+    .agenda-list { list-style: none; padding: 0; margin: 0; }
+    .agenda-list li { background: #f3f4f6; border-radius: 8px; padding: .75rem 1rem; margin-bottom: .75rem; }
+    .actions { margin-top: .5rem; }
+    .actions button { margin-right: .5rem; border: none; padding: .4rem .75rem; border-radius: 6px; cursor: pointer; font-size: .85rem; color: #fff; }
     .btn-finalizar { background: #10b981; }
     .btn-excluir { background: #ef4444; }
     .btn-editar { background: #2563eb; }
-
-    small {
-      display: block;
-      color: #6b7280;
-    }
+    small { display: block; color: #6b7280; }
   </style>
 </head>
 
@@ -219,12 +109,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("agenda-form");
   const servicoSelect = document.getElementById("servico");
 
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) {
+  // ✅ Obter usuário corretamente
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (!user || userError) {
     location.href = "index.html";
     return;
   }
-  const user = auth.user;
 
   document.getElementById("logoutBtn").onclick = async () => {
     await supabase.auth.signOut();
@@ -241,11 +131,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     return v == 24 ? "24h antes" : "2h antes";
   }
 
+  // ✅ Carregar serviços
   async function carregarServicos() {
     const { data, error } = await supabase
       .from("servicos")
       .select("id, nome")
-      .order("nome");
+      .order("nome", { ascending: true });
 
     if (error) {
       console.error("Erro ao carregar serviços:", error);
@@ -258,6 +149,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // ✅ Formulário de agendamento
   form.onsubmit = async (e) => {
     e.preventDefault();
 
@@ -280,6 +172,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     carregarAgenda();
   };
 
+  // ✅ Carregar agenda corretamente
   async function carregarAgenda() {
     lista.innerHTML = "";
 
@@ -287,7 +180,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       .from("agendamentos")
       .select("*")
       .eq("usuario_id", user.id)
-      .order("data_agendamento");
+      .order("data_agendamento", { ascending: true });
 
     if (error) {
       console.error("Erro ao carregar agenda:", error);
@@ -311,6 +204,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // ✅ Ações da agenda
   lista.addEventListener("click", async (e) => {
     const li = e.target.closest("li");
     if (!li) return;

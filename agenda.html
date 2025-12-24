@@ -145,20 +145,20 @@ let servicoEditandoId = null;
 
   async function carregarAgenda() {
   const { data, error } = await supabase
-    .from("agendamentos")
-    .select(`
-      id,
-      cliente_nome,
-      data_agendamento,
-      hora,
-      lembrete_horas,
-      status,
-      servico:servicos!agendamentos_servico_id_fkey (
-        nome
-      )
-    `)
-    .eq("usuario_id", user.id)
-    .order("data_agendamento");
+  .from("agendamentos")
+  .select(`
+    id,
+    cliente_nome,
+    data_agendamento,
+    hora,
+    lembrete_horas,
+    status,
+    servicos (
+      nome
+    )
+  `)
+  .eq("usuario_id", user.id)
+  .order("data_agendamento");
 
   if (error) {
     console.error("Erro ao carregar agenda:", error);

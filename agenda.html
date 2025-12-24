@@ -194,7 +194,7 @@ let servicoEditandoId = null;
   return;
 }
 
-const servicoId = Number(servico.value);
+const servicoId = Number(servico.value || servicoEditandoId);
 
     const payload = {
       cliente_nome: cliente.value.trim(),

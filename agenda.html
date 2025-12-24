@@ -121,9 +121,8 @@ if (sessionError || !sessionData.session) {
   return;
 }
 
-const user = sessionData.session.user;
+user = sessionData.session.user;
 console.log("USER ID CONFIRMADO:", user.id);
-
 
 
   function formatarDataHora(dataISO, hora) {

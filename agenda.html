@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function carregarAgenda() {
     const { data } = await supabase
       .from("agendamentos")
-      .select("*, servicos(nome)")
+      .select(`id,cliente_nome,data_agendamento,hora,lembrete_horas,status,servico_id,servicos:servico_id ( nome )`)
       .eq("usuario_id", user.id)
       .order("data_agendamento");
 
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       lista.innerHTML += `
         <li class="${a.status === "finalizado" ? "finalizado" : ""}">
           <strong>${a.cliente_nome}</strong>
-          <small>Serviço: ${a.servicos?.nome || "-"}</small>
+          <small>Serviço: ${a.servicos && a.servicos.nome ? a.servicos.nome : "Não informado"}</small>
           <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
           <small>${a.lembrete_horas ? `Lembrete: ${a.lembrete_horas}h antes` : "Sem lembrete"}</small>
         </li>

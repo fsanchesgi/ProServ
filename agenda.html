@@ -22,8 +22,21 @@
     label { font-weight: 500; display: block; margin-bottom: .25rem; }
     input, select { width: 100%; padding: .5rem; border-radius: 6px; border: 1px solid #d1d5db; }
     .btn-primary { background: #4f46e5; color: #fff; border: none; padding: .6rem 1.2rem; border-radius: 8px; cursor: pointer; }
+
     .agenda-list { list-style: none; padding: 0; margin: 0; }
-    .agenda-list li { background: #f3f4f6; border-radius: 8px; padding: .75rem 1rem; margin-bottom: .75rem; }
+    .agenda-list li {
+      background: #f3f4f6;
+      border-radius: 8px;
+      padding: .75rem 1rem;
+      margin-bottom: .75rem;
+    }
+
+    /* 🔒 NOVO: visual para finalizado */
+    .agenda-list li.finalizado {
+      background: #e5e7eb;
+      opacity: 0.75;
+    }
+
     .actions { margin-top: .5rem; }
     .actions button { margin-right: .5rem; border: none; padding: .4rem .75rem; border-radius: 6px; cursor: pointer; font-size: .85rem; color: #fff; }
     .btn-finalizar { background: #10b981; }
@@ -113,7 +126,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const hora = document.getElementById("hora");
   const lembrete = document.getElementById("lembrete");
 
-  let editandoId = null; // 🔒 CONTROLE DE EDIÇÃO
+  let editandoId = null;
 
   const { data: auth } = await supabase.auth.getUser();
   if (!auth || !auth.user) {
@@ -138,6 +151,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     servicos.forEach(s => {
       servico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
     });
+  }
+
+  /* 🔒 NOVO: formatação de data/hora */
+  function formatarDataHora(dataISO, hora) {
+    const d = new Date(dataISO);
+    const dia = String(d.getDate()).padStart(2, "0");
+    const mes = String(d.getMonth() + 1).padStart(2, "0");
+    const ano = d.getFullYear();
+    return `${dia}/${mes}/${ano} às ${hora.slice(0,5)}`;
+  }
+
+  /* 🔒 NOVO: texto do lembrete */
+  function textoLembrete(v) {
+    if (!v || v == 0) return "Sem lembrete";
+    return v == 24 ? "Lembrete: 24h antes" : "Lembrete: 2h antes";
   }
 
   form.onsubmit = async (e) => {
@@ -174,7 +202,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (error) {
-      console.error(error);
       alert("Erro ao salvar");
       return;
     }
@@ -194,9 +221,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     lista.innerHTML = "";
     agendamentos.forEach(a => {
       lista.innerHTML += `
-        <li data-id="${a.id}">
+        <li class="${a.status === "finalizado" ? "finalizado" : ""}" data-id="${a.id}">
           <strong>${a.cliente_nome}</strong>
-          <small>${a.data_agendamento} às ${a.hora}</small>
+          <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
+          <small>${textoLembrete(a.lembrete_horas)}</small>
           <div class="actions">
             ${a.status === "pendente" ? `<button class="btn-finalizar">Finalizar</button>` : ""}
             <button class="btn-editar">Alterar</button>

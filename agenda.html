@@ -111,24 +111,41 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function carregarAgenda() {
-    const { data } = await supabase
-      .from("agendamentos")
-      .select(`id,cliente_nome,data_agendamento,hora,lembrete_horas,status,servico_id,servicos:servico_id ( nome )`)
-      .eq("usuario_id", user.id)
-      .order("data_agendamento");
+  const { data: agendamentos } = await supabase
+    .from("agendamentos")
+    .select(`
+      id,
+      cliente_nome,
+      data_agendamento,
+      hora,
+      lembrete_horas,
+      status,
+      servico_id,
+      servicos:servico_id ( nome )
+    `)
+    .eq("usuario_id", user.id)
+    .order("data_agendamento");
 
-    lista.innerHTML = "";
-    data.forEach(a => {
-      lista.innerHTML += `
-        <li class="${a.status === "finalizado" ? "finalizado" : ""}">
-          <strong>${a.cliente_nome}</strong>
-          <small>Serviço: ${a.servicos && a.servicos.nome ? a.servicos.nome : "Não informado"}</small>
-          <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
-          <small>${a.lembrete_horas ? `Lembrete: ${a.lembrete_horas}h antes` : "Sem lembrete"}</small>
-        </li>
-      `;
-    });
-  }
+  lista.innerHTML = "";
+
+  agendamentos.forEach(a => {
+    lista.innerHTML += `
+      <li class="${a.status === "finalizado" ? "finalizado" : ""}" data-id="${a.id}">
+        <strong>${a.cliente_nome}</strong>
+        <small>Serviço: ${a.servicos && a.servicos.nome ? a.servicos.nome : "Não informado"}</small>
+        <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
+        <small>${textoLembrete(a.lembrete_horas)}</small>
+
+        <div class="actions">
+          ${a.status === "pendente" ? `<button class="btn-finalizar">Finalizar</button>` : ""}
+          <button class="btn-editar">Alterar</button>
+          <button class="btn-excluir">Excluir</button>
+        </div>
+      </li>
+    `;
+  });
+}
+
 
   await carregarServicos();
   await carregarAgenda();

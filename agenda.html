@@ -207,7 +207,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (btn.classList.contains("btn-editar")) {
       const { data } = await supabase.from("agendamentos").select("*").eq("id", id).single();
       cliente.value = data.cliente_nome;
-      servico.value = data.servico_id;
+      servico.value = String(data.servico_id);
       dataInput.value = data.data_agendamento.split("T")[0];
       hora.value = data.hora;
       lembrete.value = data.lembrete_horas;

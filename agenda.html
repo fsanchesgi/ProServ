@@ -98,7 +98,8 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
-
+let servicoEditandoId = null;
+  
   const lista = document.getElementById("lista");
   const form = document.getElementById("agenda-form");
 
@@ -205,14 +206,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     const id = li.dataset.id;
 
     if (btn.classList.contains("btn-editar")) {
-      const { data } = await supabase.from("agendamentos").select("*").eq("id", id).single();
-      cliente.value = data.cliente_nome;
-      servico.value = String(data.servico_id);
-      dataInput.value = data.data_agendamento.split("T")[0];
-      hora.value = data.hora;
-      lembrete.value = data.lembrete_horas;
-      editandoId = id;
-    }
+  const { data } = await supabase
+    .from("agendamentos")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  cliente.value = data.cliente_nome;
+
+  // 🔒 AJUSTES CRÍTICOS
+  servico.value = String(data.servico_id);
+  dataInput.value = data.data_agendamento.split("T")[0];
+
+  hora.value = data.hora;
+  lembrete.value = data.lembrete_horas;
+
+  editandoId = id;
+}
+
 
     if (btn.classList.contains("btn-finalizar")) {
       await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id);

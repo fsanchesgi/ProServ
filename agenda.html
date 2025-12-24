@@ -59,7 +59,7 @@
 
         <div class="form-group">
           <label>Serviço</label>
-          <select id="servico" name="servico" required></select>
+          <select id="servico" required></select>
         </div>
 
         <div class="form-group">
@@ -98,8 +98,7 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
-let servicoEditandoId = null;
-  
+
   const lista = document.getElementById("lista");
   const form = document.getElementById("agenda-form");
 
@@ -110,6 +109,7 @@ let servicoEditandoId = null;
   const lembrete = document.getElementById("lembrete");
 
   let editandoId = null;
+  let servicoEditandoId = null;
   let mapaServicos = {};
 
   const { data: auth } = await supabase.auth.getUser();
@@ -131,12 +131,18 @@ let servicoEditandoId = null;
 
   async function carregarServicos() {
     const { data } = await supabase.from("servicos").select("id, nome");
+
     servico.innerHTML = "<option value=''>Selecione</option>";
 
     data.forEach(s => {
       mapaServicos[s.id] = s.nome;
       servico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
     });
+
+    // ✅ AJUSTE DEFINITIVO
+    if (servicoEditandoId) {
+      servico.value = String(servicoEditandoId);
+    }
   }
 
   async function carregarAgenda() {
@@ -169,8 +175,8 @@ let servicoEditandoId = null;
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const servicoId = parseInt(servico.value, 10);
-    if (isNaN(servicoId)) {
+    const servicoId = Number(servico.value);
+    if (!servicoId) {
       alert("Selecione um serviço");
       return;
     }
@@ -195,6 +201,7 @@ let servicoEditandoId = null;
 
     form.reset();
     editandoId = null;
+    servicoEditandoId = null;
     carregarAgenda();
   });
 
@@ -206,27 +213,22 @@ let servicoEditandoId = null;
     const id = li.dataset.id;
 
     if (btn.classList.contains("btn-editar")) {
-  const { data } = await supabase
-    .from("agendamentos")
-    .select("*")
-    .eq("id", id)
-    .single();
+      const { data } = await supabase
+        .from("agendamentos")
+        .select("*")
+        .eq("id", id)
+        .single();
 
-  cliente.value = data.cliente_nome;
+      cliente.value = data.cliente_nome;
+      dataInput.value = data.data_agendamento.split("T")[0];
+      hora.value = data.hora;
+      lembrete.value = data.lembrete_horas;
 
-  // 🔒 AJUSTES CRÍTICOS
-  setTimeout(() => {
-  servico.value = String(data.servico_id);
-}, 0);
-  dataInput.value = data.data_agendamento.split("T")[0];
+      editandoId = id;
+      servicoEditandoId = data.servico_id;
 
-  hora.value = data.hora;
-  lembrete.value = data.lembrete_horas;
-
-  editandoId = id;
-  servicoEditandoId = data.servico_id; // 🔒 LINHA CRÍTICA
-}
-
+      await carregarServicos();
+    }
 
     if (btn.classList.contains("btn-finalizar")) {
       await supabase.from("agendamentos").update({ status: "finalizado" }).eq("id", id);

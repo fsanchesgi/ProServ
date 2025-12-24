@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("agenda-form");
   const servicoSelect = document.getElementById("servico");
 
-  // Obter usuário corretamente
+  // Obter usuário
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (!user || userError) {
     location.href = "index.html";
@@ -149,23 +149,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Formulário de agendamento
+  // Formulário de agendamento com validação completa
   form.onsubmit = async (e) => {
     e.preventDefault();
+
+    if (!cliente.value.trim()) {
+      alert("Digite o nome do cliente");
+      return;
+    }
 
     if (!servico.value) {
       alert("Selecione um serviço");
       return;
     }
 
-    // Valores convertidos corretamente
+    if (!data.value) {
+      alert("Escolha uma data");
+      return;
+    }
+
+    if (!hora.value) {
+      alert("Escolha uma hora");
+      return;
+    }
+
     const agendamento = {
       usuario_id: user.id,
-      cliente_nome: cliente.value,
+      cliente_nome: cliente.value.trim(),
       servico_id: parseInt(servico.value),
       data_agendamento: data.value,
       hora: hora.value,
-      lembrete_horas: parseInt(lembrete.value),
+      lembrete_horas: parseInt(lembrete.value) || 0,
       status: "pendente"
     };
 

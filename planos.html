@@ -2,97 +2,297 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <title>ProServ | Planos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Planos - ProServ</title>
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="icon" href="./images/favicon.png">
 
-  <!-- CSS custom -->
-  <link rel="stylesheet" href="./style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background: #f9fafb;
+      color: #111827;
+    }
+
+    /* HEADER */
+    header {
+      background: #111827;
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    header .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header img {
+      height: 36px;
+    }
+
+    header nav a,
+    header nav button {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-weight: 500;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #111827, #1f2933);
+      color: #fff;
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 2.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: auto;
+      opacity: 0.9;
+    }
+
+    /* PLANOS */
+    .plans {
+      max-width: 1200px;
+      margin: auto;
+      padding: 4rem 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+
+    .plan-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .plan-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    }
+
+    .plan-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .plan-subtitle {
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .plan-price {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+    }
+
+    .plan-price span {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #6b7280;
+    }
+
+    .plan-features {
+      list-style: none;
+      margin-bottom: 2rem;
+    }
+
+    .plan-features li {
+      margin-bottom: 0.7rem;
+      font-size: 0.95rem;
+    }
+
+    .plan-features li::before {
+      content: "✔";
+      color: #16a34a;
+      margin-right: 0.5rem;
+      font-weight: bold;
+    }
+
+    .plan-btn {
+      padding: 0.9rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background 0.3s ease;
+    }
+
+    .btn-free {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .btn-free:hover {
+      background: #d1d5db;
+    }
+
+    .btn-basic {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .btn-basic:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-premium {
+      background: #7c3aed;
+      color: #fff;
+    }
+
+    .btn-premium:hover {
+      background: #6d28d9;
+    }
+
+    .highlight {
+      border: 2px solid #7c3aed;
+      position: relative;
+    }
+
+    .badge {
+      position: absolute;
+      top: -12px;
+      right: 20px;
+      background: #7c3aed;
+      color: #fff;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.75rem;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    /* FOOTER */
+    footer {
+      background: #111827;
+      color: #9ca3af;
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Header -->
+  <!-- HEADER -->
   <header>
     <div class="container">
-      <div style="display:flex; align-items:center;">
-        <img src="./images/logo.png" alt="ProServ Logo">
-      </div>
+      <img src="./images/logo.png" alt="ProServ">
       <nav>
-        <a href="index.html">Início</a>
+        <a href="dashboard.html">Dashboard</a>
         <a href="planos.html">Planos</a>
-        <a href="sobre.html">Sobre</a>
-        <a href="login.html" class="button">Acessar</a>
+        <a href="login.html">Acessar</a>
       </nav>
     </div>
   </header>
 
-  <!-- Hero -->
-  <section class="hero-plano">
-    <div class="hero-content">
-      <h1>Nossos Planos</h1>
-      <p>Escolha o plano que melhor se adapta às necessidades do seu negócio.</p>
-    </div>
+  <!-- HERO -->
+  <section class="hero">
+    <h1>Planos feitos para o seu crescimento</h1>
+    <p>Escolha o plano ideal para o seu negócio e evolua conforme sua empresa cresce.</p>
   </section>
 
-  <!-- Planos -->
-  <section id="planos">
-    <h2 style="text-align:center; margin:2rem 0;">Escolha o Seu Plano</h2>
-    <div class="cards cards-3">
-      <div class="card">
-        <h3>Gratuito</h3>
-        <p><strong>Até 10 agendamentos/mês</strong></p>
-        <p>Ideal para empresas que estão começando e querem testar a plataforma.</p>
-        <a href="signup.html" class="plan-button">Escolher</a>
-      </div>
-      <div class="card">
-        <h3>Básico</h3>
-        <p><strong>Agendamentos ilimitados</strong></p>
-        <p>Inclui notificações e dashboard completo para controle do negócio.</p>
-        <a href="signup.html" class="plan-button">Escolher</a>
-      </div>
-      <div class="card">
-        <h3>Premium</h3>
-        <p><strong>Todos os recursos avançados</strong></p>
-        <p>Inclui integrações com gateways de pagamento, relatórios detalhados e suporte prioritário.</p>
-        <a href="signup.html" class="plan-button">Escolher</a>
-      </div>
-    </div>
-  </section>
+  <!-- PLANOS -->
+  <section class="plans">
 
-  <!-- Footer -->
-  <footer style="background: linear-gradient(90deg, #1f2937, #111827); color: #fff; padding: 3rem 2rem;">
-    <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:2rem;">
-      <!-- Logo e descrição -->
-      <div style="flex:1; min-width:250px;">
-        <img src="./images/logo.png" alt="ProServ Logo" style="width:150px; height:auto; margin-bottom:1rem;">
-        <p style="color:#9ca3af; font-size:0.95rem;">O ProServ simplifica a gestão de serviços para pequenas empresas, aumentando produtividade e satisfação de clientes.</p>
-      </div>
+    <!-- GRATUITO -->
+    <div class="plan-card">
+      <div>
+        <h2 class="plan-title">Gratuito</h2>
+        <p class="plan-subtitle">Até 10 agendamentos/mês</p>
 
-      <!-- Links rápidos -->
-      <div style="flex:1; min-width:150px;">
-        <h4 style="color:#fff; margin-bottom:1rem;">Links</h4>
-        <ul style="list-style:none; padding:0; line-height:2;">
-          <li><a href="index.html" style="color:#9ca3af; text-decoration:none;">Início</a></li>
-          <li><a href="planos.html" style="color:#9ca3af; text-decoration:none;">Planos</a></li>
-          <li><a href="sobre.html" style="color:#9ca3af; text-decoration:none;">Sobre</a></li>
-          <li><a href="login.html" style="color:#9ca3af; text-decoration:none;">Acessar</a></li>
+        <div class="plan-price">R$ 0 <span>/ mês</span></div>
+
+        <ul class="plan-features">
+          <li>Agenda básica</li>
+          <li>Cadastro de clientes</li>
+          <li>Cadastro de serviços</li>
+          <li>Limite de 10 agendamentos</li>
         </ul>
       </div>
 
-      <!-- Contato -->
-      <div style="flex:1; min-width:200px;">
-        <h4 style="color:#fff; margin-bottom:1rem;">Contato</h4>
-        <p style="color:#9ca3af; margin-bottom:0.5rem;">Email: <a href="mailto:contato@proserv.com.br" style="color:#00ccff;">contato@proserv.com.br</a></p>
-        <p style="color:#9ca3af;">Telefone: <a href="tel:+5511999999999" style="color:#00ccff;">+55 11 99999-9999</a></p>
-        <a href="signup.html" style="display:inline-block; margin-top:1rem; padding:0.8rem 1.5rem; background-color:#00ccff; color:#111827; border-radius:8px; font-weight:600; text-decoration:none; transition:0.3s;">Assine Agora</a>
-      </div>
+      <button class="plan-btn btn-free">Plano atual</button>
     </div>
 
-    <div style="text-align:center; margin-top:2rem; color:#6b7280; font-size:0.85rem;">
-      &copy; 2025 ProServ. Todos os direitos reservados.
+    <!-- BÁSICO -->
+    <div class="plan-card">
+      <div>
+        <h2 class="plan-title">Básico</h2>
+        <p class="plan-subtitle">Agendamentos ilimitados</p>
+
+        <div class="plan-price">R$ 29,90 <span>/ mês</span></div>
+
+        <ul class="plan-features">
+          <li>Agendamentos ilimitados</li>
+          <li>Dashboard completo</li>
+          <li>Notificações</li>
+          <li>Histórico de atendimentos</li>
+        </ul>
+      </div>
+
+      <button class="plan-btn btn-basic">Assinar Básico</button>
     </div>
+
+    <!-- PREMIUM -->
+    <div class="plan-card highlight">
+      <span class="badge">Mais completo</span>
+
+      <div>
+        <h2 class="plan-title">Premium</h2>
+        <p class="plan-subtitle">Todos os recursos avançados</p>
+
+        <div class="plan-price">R$ 49,90 <span>/ mês</span></div>
+
+        <ul class="plan-features">
+          <li>Todos os recursos do Básico</li>
+          <li>Integração com pagamentos</li>
+          <li>Relatórios detalhados</li>
+          <li>Controle financeiro</li>
+          <li>Suporte prioritário</li>
+        </ul>
+      </div>
+
+      <button class="plan-btn btn-premium">Assinar Premium</button>
+    </div>
+
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    © 2025 ProServ — Sistema de Agendamentos Profissional
   </footer>
 
 </body>

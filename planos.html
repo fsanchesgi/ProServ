@@ -263,54 +263,19 @@
 </footer>
 
 <script>
-  let currentSession = null;
-
-  // Aguarda o Supabase Auth estar pronto
-  const waitForSupabaseAuth = () => {
-    return new Promise((resolve, reject) => {
-      let tentativas = 0;
-
-      const interval = setInterval(() => {
-        tentativas++;
-
-        if (
-          window.supabase &&
-          window.supabase.auth &&
-          typeof window.supabase.auth.getSession === "function"
-        ) {
-          clearInterval(interval);
-          resolve(window.supabase.auth);
-        }
-
-        if (tentativas > 20) {
-          clearInterval(interval);
-          reject("Supabase Auth não disponível");
-        }
-      }, 100);
-    });
-  };
-
-  // Inicializa a sessão assim que o auth estiver disponível
-  (async () => {
-    try {
-      const auth = await waitForSupabaseAuth();
-      const { data } = await auth.getSession();
-      currentSession = data.session || null;
-    } catch (err) {
-      console.warn("Auth ainda não disponível:", err);
-    }
-  })();
-
   async function assinar(plano) {
     console.log("Plano clicado:", plano);
 
-    // Se ainda não há sessão, redireciona para login
-    if (!currentSession || !currentSession.user) {
+    // 🔐 Verifica usuário logado (FORMA CORRETA)
+    const { data, error } = await window.supabase.auth.getUser();
+
+    if (error || !data || !data.user) {
+      console.warn("Usuário não autenticado");
       window.location.href = "login.html";
       return;
     }
 
-    const user = currentSession.user;
+    const user = data.user;
 
     try {
       const response = await fetch(
@@ -327,6 +292,7 @@
       );
 
       if (!response.ok) {
+        console.error("Erro HTTP:", response.status);
         alert("Erro ao iniciar pagamento");
         return;
       }
@@ -334,11 +300,12 @@
       const result = await response.json();
 
       if (!result.init_point) {
-        alert("Checkout inválido");
+        console.error("Resposta inválida:", result);
+        alert("Checkout não retornou URL");
         return;
       }
 
-      // Redireciona para o Mercado Pago
+      // 💳 Redireciona para o Mercado Pago
       window.location.href = result.init_point;
 
     } catch (err) {

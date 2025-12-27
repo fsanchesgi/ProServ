@@ -29,9 +29,9 @@ serve(async (req) => {
       },
       external_reference: user_id,
       back_urls: {
-        success: "https://seusite.com/sucesso.html",
-        failure: "https://seusite.com/erro.html",
-        pending: "https://seusite.com/pendente.html",
+        success: "https://proserv-dhj6.onrender.com/sucesso.html",
+        failure: "https://proserv-dhj6.onrender.com/erro.html",
+        pending: "https://proserv-dhj6.onrender.com/pendente.html",
       },
       auto_return: "approved",
     };

@@ -265,21 +265,37 @@
 <script>
   let usuarioLogado = null;
 
-  // 🔐 Observa o estado de autenticação (FORMA CORRETA)
-  window.supabase.auth.onAuthStateChange((event, session) => {
+  // 1️⃣ LÊ A SESSÃO ATUAL (IMEDIATO)
+  (async () => {
+    try {
+      const { data, error } = await window.supabase.auth.getSession();
+
+      if (!error && data.session && data.session.user) {
+        usuarioLogado = data.session.user;
+        console.log("Sessão ativa detectada:", usuarioLogado.id);
+      } else {
+        console.log("Nenhuma sessão ativa");
+      }
+    } catch (err) {
+      console.error("Erro ao obter sessão:", err);
+    }
+  })();
+
+  // 2️⃣ ESCUTA MUDANÇAS DE LOGIN/LOGOUT
+  window.supabase.auth.onAuthStateChange((_event, session) => {
     if (session && session.user) {
       usuarioLogado = session.user;
       console.log("Usuário autenticado:", usuarioLogado.id);
     } else {
       usuarioLogado = null;
-      console.log("Usuário não autenticado");
+      console.log("Usuário deslogado");
     }
   });
 
+  // 3️⃣ AÇÃO DO BOTÃO
   async function assinar(plano) {
     console.log("Plano clicado:", plano);
 
-    // ✅ VERIFICAÇÃO CONFIÁVEL
     if (!usuarioLogado) {
       window.location.href = "login.html";
       return;
@@ -300,7 +316,6 @@
       );
 
       if (!response.ok) {
-        console.error("Erro HTTP:", response.status);
         alert("Erro ao iniciar pagamento");
         return;
       }
@@ -308,8 +323,7 @@
       const result = await response.json();
 
       if (!result.init_point) {
-        console.error("Resposta inválida:", result);
-        alert("Checkout não retornou URL");
+        alert("Checkout inválido");
         return;
       }
 
@@ -322,7 +336,6 @@
     }
   }
 </script>
-
 
 </body>
 </html>

@@ -263,11 +263,14 @@
 </footer>
 
 <script>
-  // Usa o Supabase GLOBAL já criado no sistema
-  // NÃO redeclara createClient
-
   async function assinar(plano) {
     console.log("Plano clicado:", plano);
+
+    if (!window.supabase?.auth?.getUser) {
+      console.error("Supabase Auth não inicializado corretamente");
+      alert("Erro de autenticação. Recarregue a página.");
+      return;
+    }
 
     const { data, error } = await window.supabase.auth.getUser();
 
@@ -276,38 +279,27 @@
       return;
     }
 
-    try {
-      const response = await fetch(
-        "https://uqwbduinwugaqexsvkxc.supabase.co/functions/v1/create-checkout",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            plano,
-            user_id: data.user.id,
-            email: data.user.email
-          })
-        }
-      );
-
-      if (!response.ok) {
-        alert("Erro ao iniciar pagamento");
-        return;
+    const response = await fetch(
+      "https://uqwbduinwugaqexsvkxc.supabase.co/functions/v1/create-checkout",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plano,
+          user_id: data.user.id,
+          email: data.user.email
+        })
       }
+    );
 
-      const result = await response.json();
+    const result = await response.json();
 
-      if (!result.init_point) {
-        alert("Checkout inválido");
-        return;
-      }
-
-      window.location.href = result.init_point;
-
-    } catch (err) {
-      console.error("Erro no pagamento:", err);
-      alert("Erro ao conectar com o pagamento");
+    if (!result.init_point) {
+      alert("Erro ao gerar checkout");
+      return;
     }
+
+    window.location.href = result.init_point;
   }
 </script>
 

@@ -265,34 +265,48 @@
 <script>
   let usuarioLogado = null;
 
-  // 1️⃣ LÊ A SESSÃO ATUAL (IMEDIATO)
-  (async () => {
-    try {
-      const { data, error } = await window.supabase.auth.getSession();
+  // 🔁 Aguarda o Supabase GLOBAL existir
+  function aguardarSupabase() {
+    return new Promise((resolve) => {
+      const interval = setInterval(() => {
+        if (
+          window.supabase &&
+          window.supabase.auth &&
+          typeof window.supabase.auth.getSession === "function"
+        ) {
+          clearInterval(interval);
+          resolve(window.supabase);
+        }
+      }, 100);
+    });
+  }
 
-      if (!error && data.session && data.session.user) {
-        usuarioLogado = data.session.user;
-        console.log("Sessão ativa detectada:", usuarioLogado.id);
-      } else {
-        console.log("Nenhuma sessão ativa");
-      }
-    } catch (err) {
-      console.error("Erro ao obter sessão:", err);
+  // 🚀 Inicialização segura
+  (async () => {
+    const supabase = await aguardarSupabase();
+
+    // 1️⃣ Lê sessão atual
+    const { data } = await supabase.auth.getSession();
+    if (data.session && data.session.user) {
+      usuarioLogado = data.session.user;
+      console.log("Sessão ativa:", usuarioLogado.id);
+    } else {
+      console.log("Nenhuma sessão ativa");
     }
+
+    // 2️⃣ Escuta mudanças de auth
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (session && session.user) {
+        usuarioLogado = session.user;
+        console.log("Usuário autenticado:", usuarioLogado.id);
+      } else {
+        usuarioLogado = null;
+        console.log("Usuário deslogado");
+      }
+    });
   })();
 
-  // 2️⃣ ESCUTA MUDANÇAS DE LOGIN/LOGOUT
-  window.supabase.auth.onAuthStateChange((_event, session) => {
-    if (session && session.user) {
-      usuarioLogado = session.user;
-      console.log("Usuário autenticado:", usuarioLogado.id);
-    } else {
-      usuarioLogado = null;
-      console.log("Usuário deslogado");
-    }
-  });
-
-  // 3️⃣ AÇÃO DO BOTÃO
+  // 💳 Botão Assinar
   async function assinar(plano) {
     console.log("Plano clicado:", plano);
 
@@ -327,7 +341,7 @@
         return;
       }
 
-      // 💳 Redireciona para o Mercado Pago
+      // 👉 MERCADO PAGO
       window.location.href = result.init_point;
 
     } catch (err) {
@@ -336,6 +350,7 @@
     }
   }
 </script>
+
 
 </body>
 </html>

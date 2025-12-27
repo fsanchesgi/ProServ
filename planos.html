@@ -263,39 +263,54 @@
 </footer>
 
 <script>
-  const SUPABASE_URL = "https://uqwbduinwugaqexsvkxc.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxd2JkdWlud3VnYXFleHN2a3hjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3MTk5MjMsImV4cCI6MjA4MTI5NTkyM30._GzXlkNAvqbevYjmi-crhvSKGQQfX3yjzTWT5PTvIxE";
-
-  const supabase = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+  // Usa o Supabase GLOBAL já criado no sistema
+  // NÃO redeclara createClient
 
   async function assinar(plano) {
-    const { data } = await supabase.auth.getUser();
+    console.log("Plano clicado:", plano);
 
-    if (!data.user) {
+    const { data, error } = await window.supabase.auth.getUser();
+
+    if (error || !data.user) {
       window.location.href = "login.html";
       return;
     }
 
-    const response = await fetch(
-      "https://uqwbduinwugaqexsvkxc.supabase.co/functions/v1/create-checkout",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plano,
-          user_id: data.user.id,
-          email: data.user.email
-        }),
-      }
-    );
+    try {
+      const response = await fetch(
+        "https://uqwbduinwugaqexsvkxc.supabase.co/functions/v1/create-checkout",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            plano,
+            user_id: data.user.id,
+            email: data.user.email
+          })
+        }
+      );
 
-    const result = await response.json();
-    window.location.href = result.init_point;
+      if (!response.ok) {
+        alert("Erro ao iniciar pagamento");
+        return;
+      }
+
+      const result = await response.json();
+
+      if (!result.init_point) {
+        alert("Checkout inválido");
+        return;
+      }
+
+      window.location.href = result.init_point;
+
+    } catch (err) {
+      console.error("Erro no pagamento:", err);
+      alert("Erro ao conectar com o pagamento");
+    }
   }
 </script>
+
 
 </body>
 </html>

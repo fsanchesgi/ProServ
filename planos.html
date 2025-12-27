@@ -263,19 +263,27 @@
 </footer>
 
 <script>
+  let usuarioLogado = null;
+
+  // 🔐 Observa o estado de autenticação (FORMA CORRETA)
+  window.supabase.auth.onAuthStateChange((event, session) => {
+    if (session && session.user) {
+      usuarioLogado = session.user;
+      console.log("Usuário autenticado:", usuarioLogado.id);
+    } else {
+      usuarioLogado = null;
+      console.log("Usuário não autenticado");
+    }
+  });
+
   async function assinar(plano) {
     console.log("Plano clicado:", plano);
 
-    // 🔐 Verifica usuário logado (FORMA CORRETA)
-    const { data, error } = await window.supabase.auth.getUser();
-
-    if (error || !data || !data.user) {
-      console.warn("Usuário não autenticado");
+    // ✅ VERIFICAÇÃO CONFIÁVEL
+    if (!usuarioLogado) {
       window.location.href = "login.html";
       return;
     }
-
-    const user = data.user;
 
     try {
       const response = await fetch(
@@ -285,8 +293,8 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             plano,
-            user_id: user.id,
-            email: user.email
+            user_id: usuarioLogado.id,
+            email: usuarioLogado.email
           })
         }
       );
@@ -314,6 +322,7 @@
     }
   }
 </script>
+
 
 </body>
 </html>

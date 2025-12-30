@@ -269,7 +269,6 @@
   // 🌍 escopo global
   let usuarioLogado = null;
 
-  // Aguarda o Supabase global existir
   function aguardarSupabase() {
     return new Promise((resolve) => {
       const interval = setInterval(() => {
@@ -281,37 +280,25 @@
     });
   }
 
-  // Inicialização segura
   (async () => {
     const supabase = await aguardarSupabase();
 
-    // Lê sessão atual
     const { data } = await supabase.auth.getSession();
-    if (data.session && data.session.user) {
-      usuarioLogado = data.session.user;
-      console.log("Sessão ativa:", usuarioLogado.id);
-    } else {
-      console.log("Nenhuma sessão ativa");
-    }
+    usuarioLogado = data.session?.user ?? null;
 
-    // Escuta login/logout
     supabase.auth.onAuthStateChange((_event, session) => {
       usuarioLogado = session?.user ?? null;
-      console.log(
-        usuarioLogado ? "Usuário autenticado" : "Usuário não autenticado"
-      );
     });
   })();
 
-  // 💳 botão Assinar
-  //async function assinar(plano) {
-    //console.log("Plano clicado:", plano);
+  // 💳 botão Assinar (SEM REDIRECT PARA LOGIN)
+  async function assinar(plano) {
+    console.log("Plano clicado:", plano);
 
-    // 🔒 proteção correta
-    //if (!usuarioLogado) {
-      //window.location.href = "login.html";
-      //return;
-    //}
+    if (!usuarioLogado) {
+      alert("Você precisa estar logado para assinar um plano.");
+      return; // ⛔ não redireciona
+    }
 
     console.log("Usuário logado:", usuarioLogado.id);
     console.log("Chamando checkout...");
@@ -330,13 +317,10 @@
         }
       );
 
-      console.log("Status HTTP:", response.status);
-
       const result = await response.json();
-      console.log("Resposta checkout:", result);
 
       if (!result.init_point) {
-        alert("init_point não retornado");
+        alert("Erro ao gerar checkout.");
         return;
       }
 
@@ -344,11 +328,11 @@
       window.location.href = result.init_point;
 
     } catch (err) {
-      console.error("Erro no fetch:", err);
+      console.error("Erro no checkout:", err);
+      alert("Erro ao iniciar pagamento.");
     }
   }
 </script>
-
 
 </body>
 </html>

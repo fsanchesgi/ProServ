@@ -1,19 +1,29 @@
 (async () => {
-  const paginaAtual = window.location.pathname;
+  // pathname normalizado
+  const path = window.location.pathname.toLowerCase();
 
-  // páginas que NÃO exigem login
+  // páginas públicas (html ou rota limpa)
   const paginasPublicas = [
-    "index.html",
-    "login.html",
-    "planos.html"
+    "/",                // home
+    "/index",
+    "/index.html",
+    "/login",
+    "/login.html",
+    "/planos",
+    "/planos.html"
   ];
 
   const isPublica = paginasPublicas.some(p =>
-    paginaAtual.includes(p)
+    path === p || path.endsWith(p)
   );
 
   // 🔒 Só protege páginas privadas
   if (!isPublica) {
+    if (!window.supabase || !window.supabase.auth) {
+      // aguarda supabase carregar
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
     const { data } = await window.supabase.auth.getSession();
 
     if (!data.session) {

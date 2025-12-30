@@ -1,33 +1,27 @@
 (async () => {
-  // pathname normalizado
-  const path = window.location.pathname.toLowerCase();
+  // 🔓 Se a página é pública, NÃO faz nada
+  if (document.querySelector('meta[name="public-page"]')) {
+    console.log("Página pública — auth guard ignorado");
+    return;
+  }
 
-  // páginas públicas (html ou rota limpa)
-  const paginasPublicas = [
-    "/",                // home
-    "/index",
-    "/index.html",
-    "/login",
-    "/login.html",
-    "/planos",
-    "/planos.html"
-  ];
+  // Aguarda Supabase existir
+  const aguardarSupabase = () =>
+    new Promise(resolve => {
+      const i = setInterval(() => {
+        if (window.supabase?.auth) {
+          clearInterval(i);
+          resolve();
+        }
+      }, 50);
+    });
 
-  const isPublica = paginasPublicas.some(p =>
-    path === p || path.endsWith(p)
-  );
+  await aguardarSupabase();
 
-  // 🔒 Só protege páginas privadas
-  if (!isPublica) {
-    if (!window.supabase || !window.supabase.auth) {
-      // aguarda supabase carregar
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
+  const { data } = await window.supabase.auth.getSession();
 
-    const { data } = await window.supabase.auth.getSession();
-
-    if (!data.session) {
-      window.location.href = "login.html";
-    }
+  if (!data.session) {
+    console.log("Página privada sem sessão → login");
+    window.location.href = "login.html";
   }
 })();

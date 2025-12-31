@@ -4,295 +4,165 @@
   <meta charset="UTF-8">
   <title>ProServ | Agenda</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="./style.css">
-  
-<!-- Favicon -->
-  <link rel="icon" type="image/png" href="./images/favicon.png">
+
+  <link rel="icon" href="./images/favicon.png">
+
+  <!-- SUPABASE -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
   <style>
-    body { font-family: Inter, sans-serif; background: #f9fafb; margin: 0; color: #111827; }
-    header { background: #111827; padding: 1rem 0; position: sticky; top: 0; z-index: 1000; }
-    header .container { padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
-    header nav a { color: #fff; margin-right: 1.5rem; text-decoration: none; }
-    header nav a.active { border-bottom: 2px solid #4f46e5; }
-    header nav button { background: #4f46e5; border: none; color: #fff; padding: .5rem 1rem; border-radius: 6px; cursor: pointer; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: #f9fafb;
+      color: #111827;
+    }
 
-    .dashboard-page { max-width: 1200px; margin: 2.5rem auto; padding: 0 2rem; }
-    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; }
-    .dashboard-card { background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
+    header {
+      background: #111827;
+      padding: 1rem 0;
+    }
 
-    .agenda-list { list-style: none; padding: 0; margin: 0; }
-    .agenda-list li { background: #f3f4f6; border-radius: 8px; padding: .75rem 1rem; margin-bottom: .75rem; }
-    .agenda-list li.finalizado { background: #e5e7eb; opacity: .75; }
+    header .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-    .actions { margin-top: .5rem; }
-    .actions button { margin-right: .5rem; border: none; padding: .4rem .75rem; border-radius: 6px; font-size: .85rem; color: #fff; cursor: pointer; }
-    .btn-finalizar { background: #10b981; }
-    .btn-editar { background: #2563eb; }
-    .btn-excluir { background: #ef4444; }
+    header img {
+      height: 60px;
+    }
 
-    small { display: block; color: #6b7280; }
-    .btn-primary { background: #4f46e5; color: #fff; border: none; padding: .6rem 1.2rem; border-radius: 8px; cursor: pointer; }
+    nav a, nav button {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-weight: 500;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 3rem 2rem;
+    }
+
+    .page-header {
+      margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .page-header p {
+      color: #6b7280;
+    }
+
+    .agenda-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .agenda-placeholder {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #6b7280;
+    }
+
+    .agenda-placeholder strong {
+      color: #111827;
+    }
+
+    footer {
+      background: #111827;
+      color: #9ca3af;
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.9rem;
+      margin-top: 4rem;
+    }
   </style>
 </head>
-
 <body>
 
 <header>
   <div class="container">
-    <img src="./images/logo.png" height="80">
+    <img src="./images/logo.png" alt="ProServ">
     <nav>
       <a href="dashboard.html">Dashboard</a>
-      <a href="agenda.html" class="active">Agenda</a>
+      <a href="agenda.html">Agenda</a>
+      <a href="planos.html">Planos</a>
       <button id="logoutBtn">Sair</button>
     </nav>
   </div>
 </header>
 
-<section class="dashboard-page">
-  <div class="cards-grid">
+<main>
 
-    <div class="dashboard-card">
-      <h3>Novo Atendimento</h3>
-      <form id="agenda-form">
-        <div class="form-group">
-          <label>Cliente</label>
-          <input id="cliente" required>
-        </div>
-
-        <div class="form-group">
-          <label>Serviço</label>
-          <select id="servico" name="servico" required></select>
-        </div>
-
-        <div class="form-group">
-          <label>Data</label>
-          <input type="date" id="data" required>
-        </div>
-
-        <div class="form-group">
-          <label>Hora</label>
-          <input type="time" id="hora" required>
-        </div>
-
-        <div class="form-group">
-          <label>Lembrete</label>
-          <select id="lembrete">
-            <option value="0">Sem lembrete</option>
-            <option value="24">24 horas antes</option>
-            <option value="2">2 horas antes</option>
-          </select>
-        </div>
-
-        <button type="submit" class="btn-primary">Salvar</button>
-      </form>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>Atendimentos</h3>
-      <ul id="lista" class="agenda-list"></ul>
-    </div>
-
+  <div class="page-header">
+    <h1>📅 Agenda</h1>
+    <p>Gerencie seus atendimentos e compromissos</p>
   </div>
-</section>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./supabase.js"></script>
+  <section class="agenda-card">
+    <div class="agenda-placeholder">
+      <p><strong>Agenda em construção</strong></p>
+      <p>
+        Aqui será exibida a lista de atendimentos, criação de novos horários,
+        edição e cancelamento.
+      </p>
+      <p>
+        Estrutura pronta para integração com serviços, clientes e financeiro.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  © 2025 ProServ — Sistema de Agendamentos Profissional
+</footer>
 
 <script>
-document.addEventListener("DOMContentLoaded", async () => {
-let user = null;
-let servicoEditandoId = null;
-  
-  const lista = document.getElementById("lista");
-  const form = document.getElementById("agenda-form");
+  const SUPABASE_URL = "https://uqwbduinwugaqexsvkxc.supabase.co";
+  const SUPABASE_ANON_KEY = "SUA_ANON_KEY_AQUI";
 
-  const cliente = document.getElementById("cliente");
-  const servico = document.getElementById("servico");
-  const dataInput = document.getElementById("data");
-  const hora = document.getElementById("hora");
-  const lembrete = document.getElementById("lembrete");
-
-  let editandoId = null;
-  let mapaServicos = {};
-
-  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-
-if (sessionError || !sessionData.session) {
-  console.error("Sessão inválida:", sessionError);
-  location.href = "index.html";
-  return;
-}
-
-user = sessionData.session.user;
-
-  function formatarDataHora(dataISO, hora) {
-  const [ano, mes, dia] = dataISO.split("T")[0].split("-");
-  return `${dia}/${mes}/${ano} às ${hora.slice(0,5)}`;
-}
-
-  function textoLembrete(v) {
-    if (!v || v == 0) return "Sem lembrete";
-    return v == 24 ? "Lembrete: 24h antes" : "Lembrete: 2h antes";
-  }
-
-  async function carregarServicos() {
-    const { data } = await supabase.from("servicos").select("id, nome");
-    servico.innerHTML = "<option value=''>Selecione</option>";
-
-    data.forEach(s => {
-      mapaServicos[s.id] = s.nome;
-      servico.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
-    });
-     // ✅ AJUSTE DEFINITIVO
-  if (servicoEditandoId) {
-    servico.value = String(servicoEditandoId);
-  }
-  }
-
-  async function carregarAgenda() {
-  const { data, error } = await supabase
-  .from("agendamentos")
-  .select(`
-    id,
-    cliente_nome,
-    data_agendamento,
-    hora,
-    lembrete_horas,
-    status,
-    servicos (
-      nome
-    )
-  `)
-  .eq("usuario_id", user.id)
-  .order("data_agendamento");
-
-  if (error) {
-    console.error("Erro ao carregar agenda:", error);
-    return;
-  }
-
-  lista.innerHTML = "";
-
-  data.forEach(a => {
-    lista.innerHTML += `
-      <li data-id="${a.id}" class="${a.status === "finalizado" ? "finalizado" : ""}">
-        <strong>${a.cliente_nome}</strong>
-        <small>Serviço: ${a.servicos?.nome ?? "Não informado"}</small>
-        <small>${formatarDataHora(a.data_agendamento, a.hora)}</small>
-        <small>${textoLembrete(a.lembrete_horas)}</small>
-
-        <div class="actions">
-          ${a.status === "pendente" ? `<button class="btn-finalizar">Finalizar</button>` : ""}
-          <button class="btn-editar">Alterar</button>
-          <button class="btn-excluir">Excluir</button>
-        </div>
-      </li>
-    `;
-  });
-}
-
-
-  form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  if (!servico.value) {
-    alert("Selecione um serviço");
-    return;
-  }
-
-  const servicoId = String(servico.value);
-
-  const payload = {
-    cliente_nome: cliente.value.trim(),
-    servico_id: servicoId,
-    data_agendamento: dataInput.value,
-    hora: hora.value,
-    lembrete_horas: Number(lembrete.value) || 0,
-    usuario_id: user.id // 🔒 OBRIGATÓRIO PARA INSERT E UPDATE
-  };
-
-  let result;
-
-  if (editandoId) {
-    result = await supabase
-      .from("agendamentos")
-      .update(payload)
-      .eq("id", editandoId);
-  } else {
-    result = await supabase
-      .from("agendamentos")
-      .insert({
-        ...payload,
-        status: "pendente"
-      });
-  }
-
-  if (result.error) {
-    console.error("Erro Supabase:", result.error);
-    alert(result.error.message);
-    return;
-  }
-
-  form.reset();
-  editandoId = null;
-  servicoEditandoId = null;
-  carregarAgenda();
-});
-
-
-  lista.addEventListener("click", async (e) => {
-    const btn = e.target;
-    const li = btn.closest("li");
-    if (!li) return;
-
-    const id = li.dataset.id;
-
-    if (btn.classList.contains("btn-editar")) {
-  const { data } = await supabase
-    .from("agendamentos")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  cliente.value = data.cliente_nome;
-
-  dataInput.value = data.data_agendamento.split("T")[0];
-
-  hora.value = data.hora;
-  lembrete.value = data.lembrete_horas;
-
-  editandoId = id;
-servicoEditandoId = data.servico_id;
-servico.value = String(data.servico_id); // ✅ LINHA CRÍTICA
-}
-
-
-    if (btn.classList.contains("btn-finalizar")) {
-  const { error } = await supabase
-    .from("agendamentos")
-    .update({ status: "finalizado" })
-    .eq("id", id);
-
-  if (error) {
-    console.error("Erro ao finalizar:", error);
-    alert("Erro ao finalizar atendimento");
-    return;
-  }
-
-  carregarAgenda();
-}
-
-    if (btn.classList.contains("btn-excluir")) {
-      if (confirm("Excluir atendimento?")) {
-        await supabase.from("agendamentos").delete().eq("id", id);
-        carregarAgenda();
+  const supabase = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true
       }
     }
-  });
+  );
 
-  await carregarServicos();
-  await carregarAgenda();
-});
+  // 🔒 Proteção da página (privada)
+  (async () => {
+    const { data } = await supabase.auth.getSession();
+
+    if (!data.session) {
+      window.location.href = "login.html";
+      return;
+    }
+  })();
+
+  // Logout
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    window.location.href = "login.html";
+  });
 </script>
 
 </body>

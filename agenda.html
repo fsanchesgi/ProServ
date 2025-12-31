@@ -6,164 +6,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="icon" href="./images/favicon.png">
-
-  <!-- SUPABASE -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
   <style>
-    body {
-      margin: 0;
-      font-family: Inter, system-ui, sans-serif;
-      background: #f9fafb;
-      color: #111827;
-    }
-
-    header {
-      background: #111827;
-      padding: 1rem 0;
-    }
-
-    header .container {
-      max-width: 1200px;
-      margin: auto;
-      padding: 0 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    header img {
-      height: 60px;
-    }
-
-    nav a, nav button {
-      color: #fff;
-      text-decoration: none;
-      margin-left: 1.5rem;
-      font-weight: 500;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 0.95rem;
-    }
-
-    main {
-      max-width: 1200px;
-      margin: auto;
-      padding: 3rem 2rem;
-    }
-
-    .page-header {
-      margin-bottom: 2rem;
-    }
-
-    .page-header h1 {
-      font-size: 2rem;
-      margin-bottom: 0.3rem;
-    }
-
-    .page-header p {
-      color: #6b7280;
-    }
-
-    .agenda-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 2rem;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    }
-
-    .agenda-placeholder {
-      text-align: center;
-      padding: 3rem 1rem;
-      color: #6b7280;
-    }
-
-    .agenda-placeholder strong {
-      color: #111827;
-    }
-
-    footer {
-      background: #111827;
-      color: #9ca3af;
-      text-align: center;
-      padding: 2rem;
-      font-size: 0.9rem;
-      margin-top: 4rem;
-    }
+    body { font-family: Inter, system-ui; background:#f9fafb; margin:0 }
+    header { background:#111827; padding:1rem }
+    header a, header button { color:#fff; margin-right:1rem; background:none; border:0; cursor:pointer }
+    main { max-width:1200px; margin:auto; padding:2rem }
+    .card { background:#fff; border-radius:12px; padding:1.5rem; margin-bottom:1.5rem; box-shadow:0 10px 25px rgba(0,0,0,.05) }
+    .agenda-item { border-left:4px solid #7c3aed; padding:1rem; margin-bottom:.75rem }
+    .agenda-item h4 { margin:.2rem 0 }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="container">
-    <img src="./images/logo.png" alt="ProServ">
-    <nav>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="agenda.html">Agenda</a>
-      <a href="planos.html">Planos</a>
-      <button id="logoutBtn">Sair</button>
-    </nav>
-  </div>
+  <a href="dashboard.html">Dashboard</a>
+  <a href="agenda.html">Agenda</a>
+  <a href="planos.html">Planos</a>
+  <button id="logout">Sair</button>
 </header>
 
 <main>
+  <h1>📅 Agenda</h1>
+  <p id="infoPlano"></p>
 
-  <div class="page-header">
-    <h1>📅 Agenda</h1>
-    <p>Gerencie seus atendimentos e compromissos</p>
+  <div class="card">
+    <button id="novoBtn">+ Novo Agendamento</button>
   </div>
 
-  <section class="agenda-card">
-    <div class="agenda-placeholder">
-      <p><strong>Agenda em construção</strong></p>
-      <p>
-        Aqui será exibida a lista de atendimentos, criação de novos horários,
-        edição e cancelamento.
-      </p>
-      <p>
-        Estrutura pronta para integração com serviços, clientes e financeiro.
-      </p>
-    </div>
-  </section>
-
+  <div class="card" id="listaAgendamentos">
+    <p>Carregando agendamentos...</p>
+  </div>
 </main>
 
-<footer>
-  © 2025 ProServ — Sistema de Agendamentos Profissional
-</footer>
-
-<script>
-  const SUPABASE_URL = "https://uqwbduinwugaqexsvkxc.supabase.co";
-  const SUPABASE_ANON_KEY = "SUA_ANON_KEY_AQUI";
-
-  const supabase = supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY,
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true
-      }
-    }
-  );
-
-  // 🔒 Proteção da página (privada)
-  (async () => {
-    const { data } = await supabase.auth.getSession();
-
-    if (!data.session) {
-      window.location.href = "login.html";
-      return;
-    }
-  })();
-
-  // Logout
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await supabase.auth.signOut();
-    window.location.href = "login.html";
-  });
-</script>
-
+<script src="./js/agenda.js"></script>
 </body>
 </html>

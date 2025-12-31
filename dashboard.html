@@ -5,101 +5,178 @@
   <title>ProServ | Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="icon" type="image/png" href="./images/favicon.png">
-  <link rel="stylesheet" href="./style.css">
+  <link rel="icon" href="./images/favicon.png">
+
+  <!-- SUPABASE -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: #f9fafb;
+      color: #111827;
+    }
+
+    header {
+      background: #111827;
+      padding: 1rem 0;
+    }
+
+    header .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header img {
+      height: 60px;
+    }
+
+    nav a, nav button {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-weight: 500;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 3rem 2rem;
+    }
+
+    .welcome {
+      margin-bottom: 2rem;
+    }
+
+    .welcome h1 {
+      font-size: 2rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.8rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .card h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .card p {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    footer {
+      background: #111827;
+      color: #9ca3af;
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.9rem;
+      margin-top: 4rem;
+    }
+  </style>
 </head>
 <body>
 
-<!-- HEADER PADRÃO (COMPACTO) -->
-<header class="dashboard-header-fixed">
-  <div class="container dashboard-header-container">
-    <div class="logo-area">
-      <img src="./images/logo.png" alt="ProServ Logo">
-    </div>
-
-    <nav class="dashboard-nav">
-      <a href="dashboard.html" class="active">Dashboard</a>
+<header>
+  <div class="container">
+    <img src="./images/logo.png" alt="ProServ">
+    <nav>
+      <a href="dashboard.html">Dashboard</a>
       <a href="agenda.html">Agenda</a>
-      <a href="perfil.html">Perfil</a>
-      <button id="logoutBtn" class="logout-btn">Sair</button>
+      <a href="planos.html">Planos</a>
+      <button id="logoutBtn">Sair</button>
     </nav>
   </div>
 </header>
 
-<!-- DASHBOARD -->
-<section class="dashboard-page">
-  <div class="container">
+<main>
 
-    <!-- BOAS-VINDAS -->
-    <div class="dashboard-welcome">
-      <h1>Bem-vindo ao ProServ 👋</h1>
-      <p>Gerencie seus serviços, agenda e faturamento em um só lugar.</p>
+  <div class="welcome">
+    <h1>Bem-vindo 👋</h1>
+    <p id="userEmail">Carregando usuário...</p>
+  </div>
+
+  <section class="cards">
+    <div class="card">
+      <h3>Agendamentos do mês</h3>
+      <p id="totalAgendamentos">0</p>
     </div>
 
-    <!-- GRID PRINCIPAL -->
-    <div class="dashboard-grid">
-
-      <!-- AGENDA -->
-      <div class="dashboard-card">
-        <h3>📅 Minha Agenda</h3>
-        <p>Gerencie horários, atendimentos e compromissos.</p>
-        <a href="agenda.html" class="plan-button">Abrir Agenda</a>
-      </div>
-
-      <!-- SERVIÇOS -->
-      <div class="dashboard-card">
-        <h3>🧾 Meus Serviços</h3>
-        <p>Cadastre serviços, valores e duração.</p>
-        <a href="servicos.html" class="plan-button">Gerenciar Serviços</a>
-      </div>
-
-      <!-- FINANCEIRO -->
-      <div class="dashboard-card">
-        <h3>💰 Financeiro</h3>
-        <p>Controle valores recebidos e serviços realizados.</p>
-        <a href="dashboard-financeiro.html" class="plan-button">Ver Financeiro</a>
-      </div>
-
-      <!-- NOTA FISCAL -->
-      <div class="dashboard-card destaque">
-        <h3>🧾 Nota Fiscal</h3>
-        <p>Gere notas fiscais com base nos serviços realizados.</p>
-        <a href="nota-fiscal.html" class="plan-button">Emitir Nota</a>
-      </div>
-
-      <!-- PERFIL -->
-      <div class="dashboard-card">
-        <h3>👤 Meu Perfil</h3>
-        <p>Atualize seus dados e configurações.</p>
-        <a href="perfil.html" class="plan-button">Editar Perfil</a>
-      </div>
-
+    <div class="card">
+      <h3>Faturamento</h3>
+      <p id="faturamento">R$ 0,00</p>
     </div>
-  </div>
-</section>
 
-<!-- FOOTER -->
-<footer class="footer-padrao">
-  <div class="container footer-content">
-    <img src="./images/logo.png" alt="ProServ Logo">
-    <p>&copy; 2025 ProServ. Todos os direitos reservados.</p>
-  </div>
+    <div class="card">
+      <h3>Plano atual</h3>
+      <p id="planoAtual">Gratuito</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  © 2025 ProServ — Sistema de Agendamentos Profissional
 </footer>
 
-<!-- SUPABASE -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./supabase.js"></script>
-
-<!-- PROTEÇÃO DE ROTAS -->
-<script src="./protect.js"></script>
-
-<!-- LOGOUT -->
 <script>
+  const SUPABASE_URL = "https://uqwbduinwugaqexsvkxc.supabase.co";
+  const SUPABASE_ANON_KEY = "SUA_ANON_KEY_AQUI";
+
+  const supabase = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true
+      }
+    }
+  );
+
+  // 🔒 Proteção da página
+  (async () => {
+    const { data } = await supabase.auth.getSession();
+
+    if (!data.session) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const user = data.session.user;
+    document.getElementById("userEmail").textContent = user.email;
+
+    // ⚠️ valores mock (depois puxamos do banco)
+    document.getElementById("totalAgendamentos").textContent = 12;
+    document.getElementById("faturamento").textContent = "R$ 1.250,00";
+    document.getElementById("planoAtual").textContent = "Gratuito";
+  })();
+
+  // Logout
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     await supabase.auth.signOut();
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "index.html";
+    window.location.href = "login.html";
   });
 </script>
 
